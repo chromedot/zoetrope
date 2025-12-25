@@ -7,7 +7,7 @@ Goal: Implement the core logic for combining images/videos into an MP4 file with
 
 - [x] Task: Write Tests for video stitching utility (verifying file discovery and transition command generation) 8a96f31
 - [x] Task: Implement video stitching logic using ffmpeg (cross-fade and simple cuts) 2e0ec6b
-- [ ] Task: Implement background task handling for video generation
+- [x] Task: Implement background task handling for video generation 26e7048
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Video Stitching Engine' (Protocol in workflow.md)
 
 ## Phase 2: Selection UI and Generation API
