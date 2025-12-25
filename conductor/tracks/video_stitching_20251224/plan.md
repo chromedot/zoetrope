@@ -18,7 +18,7 @@ Goal: Enable users to select scenes and trigger the video generation process.
 - [x] Task: Implement the POST /api/generate_video endpoint to trigger stitching 5cca170
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Selection UI and Generation API' (Protocol in workflow.md)
 
-## Phase 3: Video Gallery and Management
+## Phase 3: Video Gallery and Management [checkpoint: 9d40b0a]
 Goal: Create a dedicated space to view and manage generated MP4 files.
 
 - [x] Task: Write Tests for Video Gallery data retrieval and UI structure
