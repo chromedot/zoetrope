@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+    .video-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 2rem;
+    }
+    .video-card {
+        background-color: var(--card-bg);
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #444;
+    }
+    .video-player {
+        width: 100%;
+        background-color: #000;
+        aspect-ratio: 16 / 9;
+    }
+    .video-info {
+        padding: 1rem;
+    }
+    .video-meta {
+        font-size: 0.85rem;
+        color: #aaa;
+        margin-bottom: 1rem;
+    }
+    .video-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Video Gallery</h2>
+    <a href="/gallery" class="btn-secondary">← Back to Story Gallery</a>
+</div>
+
+{% if not videos %}
+<div style="text-align: center; padding: 4rem; background: var(--card-bg); border-radius: 8px;">
+    <p style="color: #aaa;">No videos generated yet.</p>
+    <a href="/gallery" class="btn-primary" style="margin-top: 1rem; display: inline-block;">Go to Story Gallery</a>
+</div>
+{% else %}
+<div class="video-grid">
+    {% for video in videos %}
+    <div class="video-card" id="video-card-{{ video.id }}">
+        <video class="video-player" controls>
+            <source src="/images/{{ video.story_name }}/videos/{{ video.filename }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="video-info">
+            <div style="font-weight: bold; margin-bottom: 0.5rem;">{{ video.filename }}</div>
+            <div class="video-meta">
+                Story: <span style="color: var(--accent-color);">{{ video.story_name }}</span><br>
+                Transition: {{ video.transition }} ({{ video.duration }}s)<br>
+                Created: {{ video.created_at }}
+            </div>
+            <div class="video-actions">
+                <a href="/images/{{ video.story_name }}/videos/{{ video.filename }}" download class="btn-secondary" style="font-size: 0.8rem; padding: 4px 8px;">Download</a>
+                <button onclick="deleteVideo({{ video.id }})" class="btn-secondary" style="font-size: 0.8rem; padding: 4px 8px; border-color: #ff4444; color: #ff4444;">Delete</button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function deleteVideo(videoId) {
+        if (!confirm('Are you sure you want to delete this video record?')) return;
+        
+        try {
+            const response = await fetch(`/api/delete_video/${videoId}`, { method: 'POST' });
+            const data = await response.json();
+            if (data.status === 'success') {
+                document.getElementById(`video-card-${videoId}`).remove();
+                if (document.querySelectorAll('.video-card').length === 0) {
+                    location.reload();
+                }
+            } else {
+                alert('Error deleting video.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred.');
+        }
+    }
+</script>
+{% endblock %}

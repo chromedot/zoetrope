@@ -80,6 +80,11 @@ async def gallery(request: Request):
     scenes = enrich_scenes_with_ids(manager.story_data)
     return templates.TemplateResponse("gallery.html", {"request": request, "scenes": scenes})
 
+@app.get("/videos", response_class=HTMLResponse)
+async def video_gallery(request: Request):
+    videos = database.get_all_videos()
+    return templates.TemplateResponse("videos.html", {"request": request, "videos": videos})
+
 @app.get("/slideshow", response_class=HTMLResponse)
 async def slideshow(request: Request):
     manager.refresh_image_paths()
@@ -228,6 +233,11 @@ async def generate_video(request: VideoRequest, background_tasks: BackgroundTask
 @app.post("/api/delete_story/{story_name}")
 async def delete_story(story_name: str):
     database.delete_story_generations(story_name)
+    return {"status": "success"}
+
+@app.post("/api/delete_video/{video_id}")
+async def delete_video(video_id: int):
+    database.delete_video_record(video_id)
     return {"status": "success"}
 
 @app.get("/api/queue")

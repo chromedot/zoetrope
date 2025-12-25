@@ -21,7 +21,7 @@ Goal: Enable users to select scenes and trigger the video generation process.
 ## Phase 3: Video Gallery and Management
 Goal: Create a dedicated space to view and manage generated MP4 files.
 
-- [ ] Task: Write Tests for Video Gallery data retrieval and UI structure
-- [ ] Task: Implement backend logic to discover and serve generated videos
-- [ ] Task: Implement the Video Gallery page (HTML/CSS) with playback and download/delete actions
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Video Gallery and Management' (Protocol in workflow.md)
+- [x] Task: Write Tests for Video Gallery data retrieval and UI structure
+- [x] Task: Implement backend logic to discover and serve generated videos
+- [x] Task: Implement the Video Gallery page (HTML/CSS) with playback and download/delete actions
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Video Gallery and Management' (Protocol in workflow.md)
