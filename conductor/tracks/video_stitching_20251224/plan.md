@@ -10,7 +10,7 @@ Goal: Implement the core logic for combining images/videos into an MP4 file with
 - [x] Task: Implement background task handling for video generation 26e7048
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Video Stitching Engine' (Protocol in workflow.md) 9660559
 
-## Phase 2: Selection UI and Generation API
+## Phase 2: Selection UI and Generation API [checkpoint: 8aa6859]
 Goal: Enable users to select scenes and trigger the video generation process.
 
 - [x] Task: Write Tests for video generation API endpoint 3dd3457
