@@ -2,7 +2,9 @@
 
 This plan outlines the steps to implement audio narration.
 
-## Phase 1: Backend TTS Engine & Data [checkpoint: 3a9e6d2]
+## Phase 1: Backend TTS Engine & Data [checkpoint: eeed7c2]
+
+ [checkpoint: 3a9e6d2]
 Goal: Implement the core TTS logic and update the data model to store narration.
 
 - [x] Task: Research and select a local Python TTS library (e.g., `kokoro-onnx` or `edge-tts`) compatible with the environment.
