@@ -38,7 +38,7 @@
                 <td style="padding: 1rem;">
                     <div style="display: flex; gap: 0.5rem;">
                         <a href="/gallery"><button class="btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Review</button></a>
-                        <button class="btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; background-color: #f44336;">Delete</button>
+                        <button class="btn-danger" onclick="deleteStory('{{ story.story_name }}')" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; background-color: #f44336;">Delete</button>
                     </div>
                 </td>
             </tr>
@@ -55,6 +55,25 @@
 
 {% block scripts %}
 <script>
-    // Placeholder for future dashboard interactivity
+    async function deleteStory(storyName) {
+        if (!confirm(`Are you sure you want to delete all generation records for story "${storyName}"? This will not delete the images from disk.`)) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/delete_story/${storyName}`, {
+                method: 'POST'
+            });
+            const data = await response.json();
+            if (data.status === 'success') {
+                location.reload();
+            } else {
+                alert('Error deleting story records.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while deleting story records.');
+        }
+    }
 </script>
 {% endblock %}

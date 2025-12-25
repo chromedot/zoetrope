@@ -185,6 +185,11 @@ async def get_stats():
 async def get_dashboard():
     return database.get_dashboard_stats()
 
+@app.post("/api/delete_story/{story_name}")
+async def delete_story(story_name: str):
+    database.delete_story_generations(story_name)
+    return {"status": "success"}
+
 @app.get("/api/queue")
 async def get_queue():
     try:

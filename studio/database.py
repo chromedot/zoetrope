@@ -120,7 +120,7 @@ def get_recent_generations(limit=10):
     return rows
 
 def get_image_id_by_filename(filename):
-    conn = database.get_db_connection()
+    conn = get_db_connection()
     c = conn.cursor()
     # Handle cases where filename might be full path or just name
     base_name = os.path.basename(filename)
@@ -153,3 +153,10 @@ def get_dashboard_stats():
             "status": status
         })
     return stats
+
+def delete_story_generations(story_name):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('DELETE FROM generated_images WHERE story_name = ?', (story_name,))
+    conn.commit()
+    conn.close()
