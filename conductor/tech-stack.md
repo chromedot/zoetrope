@@ -4,6 +4,7 @@
 - **Python:** The primary programming language for both the Studio application and the ComfyUI engine.
 - **FastAPI:** Used to build the high-performance web API and management interface for the Studio.
 - **ComfyUI:** The underlying generative engine used for node-based image generation.
+- **edge-tts (Python library):** Used for generating high-quality narration audio. Selected for its balance of quality and performance.
 
 ## Data Management
 - **SQLite:** A lightweight, serverless database used for persistent storage of story data, scene definitions, and system configurations.

@@ -44,9 +44,19 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             completed_at TIMESTAMP,
             generation_duration REAL,
-            filename TEXT
+            filename TEXT,
+            narration_text TEXT,
+            audio_file TEXT
         )
     ''')
+
+    # Migration for existing databases
+    try:
+        c.execute('ALTER TABLE generated_images ADD COLUMN narration_text TEXT')
+    except: pass
+    try:
+        c.execute('ALTER TABLE generated_images ADD COLUMN audio_file TEXT')
+    except: pass
 
     # New table for Video Gallery
     c.execute('''
@@ -103,6 +113,26 @@ def update_generation_record(run_id, filename, duration):
            WHERE id=?''',
         (filename, now, duration, run_id)
     )
+    conn.commit()
+    conn.close()
+
+def update_scene_narration(story_name, scene_index, narration_text, audio_file=None):
+    conn = get_db_connection()
+    c = conn.cursor()
+    if audio_file:
+        c.execute(
+            '''UPDATE generated_images 
+               SET narration_text=?, audio_file=? 
+               WHERE story_name=? AND scene_index=?''',
+            (narration_text, audio_file, story_name, scene_index)
+        )
+    else:
+        c.execute(
+            '''UPDATE generated_images 
+               SET narration_text=? 
+               WHERE story_name=? AND scene_index=?''',
+            (narration_text, story_name, scene_index)
+        )
     conn.commit()
     conn.close()
 

@@ -40,6 +40,34 @@ class StoryManager:
         with open(self.workflow_template, 'r') as f:
             self.base_workflow = json.load(f)
         self.refresh_image_paths()
+        self.refresh_audio_paths()
+
+    def refresh_audio_paths(self):
+        """Scans audio directory for existing narration files."""
+        audio_dir = os.path.join(self.output_dir, "audio")
+        if not os.path.exists(audio_dir):
+            return
+
+        updated = False
+        for scene in self.story_data:
+            safe_desc = self.sanitize_filename(scene['description'])
+            # Pattern: scene_01_description.mp3
+            prefix = f"scene_{scene['scene']:02d}_{safe_desc}"
+            search_pattern = os.path.join(audio_dir, prefix + "*")
+            files = glob.glob(search_pattern)
+            
+            if files:
+                # Take the newest one
+                files.sort(key=os.path.getmtime, reverse=True)
+                filename = os.path.basename(files[0])
+                actual_path = f"{self.story_name}/audio/{filename}"
+                
+                if scene.get('audio_file') != actual_path:
+                    scene['audio_file'] = actual_path
+                    updated = True
+        
+        if updated:
+            self.save_story()
 
     def refresh_image_paths(self):
         """Scans output directory for existing images and updates story data."""
