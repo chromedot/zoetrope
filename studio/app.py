@@ -85,6 +85,11 @@ async def editor(request: Request, scene_index: int):
 async def status_page(request: Request):
     return templates.TemplateResponse("status.html", {"request": request})
 
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard_page(request: Request):
+    stories = database.get_dashboard_stats()
+    return templates.TemplateResponse("dashboard.html", {"request": request, "stories": stories})
+
 @app.post("/api/update_prompt/{scene_index}")
 async def update_prompt(scene_index: int, prompt: str = Form(...)):
     scene = manager.story_data[scene_index]

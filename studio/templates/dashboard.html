@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Story Dashboard</h2>
+    <div id="dashboard-stats" style="font-size: 0.9rem; color: #888;">
+        <!-- General stats could go here -->
+    </div>
+</div>
+
+<div style="background-color: var(--card-bg); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+            <tr style="background-color: #2c2c2c; border-bottom: 2px solid #333;">
+                <th style="padding: 1rem;">Story Name</th>
+                <th style="padding: 1rem;">Progress</th>
+                <th style="padding: 1rem;">Status</th>
+                <th style="padding: 1rem;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for story in stories %}
+            <tr style="border-bottom: 1px solid #333;">
+                <td style="padding: 1rem; font-weight: bold;">{{ story.story_name }}</td>
+                <td style="padding: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="flex-grow: 1; background-color: #333; height: 10px; border-radius: 5px; overflow: hidden;">
+                            <div style="background-color: var(--accent-color); width: {{ (story.completed_scenes / story.total_scenes * 100) if story.total_scenes > 0 else 0 }}%; height: 100%;"></div>
+                        </div>
+                        <span style="font-size: 0.8rem; min-width: 50px;">{{ story.completed_scenes }} / {{ story.total_scenes }}</span>
+                    </div>
+                </td>
+                <td style="padding: 1rem;">
+                    <span style="padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem; background-color: {{ '#4caf50' if story.status == 'completed' else '#ff9800' }}; color: #000; font-weight: bold;">
+                        {{ story.status | upper }}
+                    </span>
+                </td>
+                <td style="padding: 1rem;">
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a href="/gallery"><button class="btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Review</button></a>
+                        <button class="btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; background-color: #f44336;">Delete</button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not stories %}
+            <tr>
+                <td colspan="4" style="padding: 2rem; text-align: center; color: #888;">No stories found in generation history.</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Placeholder for future dashboard interactivity
+</script>
+{% endblock %}
