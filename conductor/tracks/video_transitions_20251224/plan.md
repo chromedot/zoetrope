@@ -2,7 +2,7 @@
 
 This plan outlines the steps to implement advanced video transitions.
 
-## Phase 1: Architecture and Cross-Fade
+## Phase 1: Architecture and Cross-Fade [checkpoint: 059e0de]
 Goal: Refactor the stitching engine to support complex transitions and implement Cross-Fading.
 
 - [x] Task: Write Tests for `VideoStitcher` verifying different transition strategies (mocked)
