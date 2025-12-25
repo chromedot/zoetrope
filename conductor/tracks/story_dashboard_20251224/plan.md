@@ -2,12 +2,12 @@
 
 This plan outlines the steps to implement the Story Dashboard.
 
-## Phase 1: Backend API for Story Statistics
+## Phase 1: Backend API for Story Statistics [checkpoint: 3a9e6d2]
 Goal: Create the necessary backend logic to provide data for the dashboard.
 
 - [x] Task: Write Tests for story statistics API (checking aggregation and status counts) f14f542
 - [x] Task: Implement story statistics API (FastAPI endpoints and database queries) 74dcce6
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Backend API for Story Statistics' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Backend API for Story Statistics' (Protocol in workflow.md) 3a9e6d2
 
 ## Phase 2: Frontend Dashboard Structure
 Goal: Build the visual structure and layout of the dashboard.
