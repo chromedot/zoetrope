@@ -31,8 +31,8 @@ class TestVideoStitcher(unittest.TestCase):
         self.assertIn("ffmpeg", cmd)
         self.assertIn("-i", cmd)
         self.assertIn(output_path, cmd)
-        # Should have 3 inputs
-        self.assertEqual(cmd.count("-i"), 3)
+        # Concat demuxer uses a single input file list
+        self.assertEqual(cmd.count("-i"), 1)
 
     def test_output_path_generation(self):
         """Test that output path is correctly formatted."""
