@@ -1,0 +1,19 @@
+# Track Plan: Enhanced Video Transitions
+
+This plan outlines the steps to implement advanced video transitions.
+
+## Phase 1: Architecture and Cross-Fade
+Goal: Refactor the stitching engine to support complex transitions and implement Cross-Fading.
+
+- [x] Task: Write Tests for `VideoStitcher` verifying different transition strategies (mocked)
+- [x] Task: Refactor `VideoStitcher` to use a Transition Strategy pattern
+- [x] Task: Implement `CrossFadeStrategy` using complex FFmpeg filters (xfade)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Architecture and Cross-Fade' (Protocol in workflow.md)
+
+## Phase 2: UI Updates and AI Placeholder
+Goal: Update the UI to expose new options and create the placeholder for AI Morphing.
+
+- [ ] Task: Update `VideoStitcher` with `AIMorphStrategy` placeholder (stub)
+- [ ] Task: Update Gallery UI to include "AI Morph" in the transition dropdown
+- [ ] Task: Write Tests ensuring "AI Morph" selection routes to the correct strategy
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: UI Updates and AI Placeholder' (Protocol in workflow.md)

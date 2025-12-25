@@ -16,3 +16,4 @@
 ## Infrastructure and Automation
 - **Bash Scripts:** Used for system startup, service management, and batch automation tasks.
 - **Virtualenv (comfyui-env):** Ensures a consistent and isolated Python environment for all dependencies.
+- **FFmpeg:** Used for high-performance video stitching and processing transitions.
