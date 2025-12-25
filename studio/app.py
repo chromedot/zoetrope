@@ -11,6 +11,8 @@ from fastapi import FastAPI, Request, Form, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from pydantic import BaseModel
+from typing import List
 import urllib.request
 
 # Add scripts folder to path to import story_manager
@@ -61,6 +63,12 @@ def enrich_scenes_with_ids(scenes):
         else:
             scene['db_id'] = None
     return scenes
+
+class VideoRequest(BaseModel):
+    story_name: str
+    files: List[str]
+    transition: str = "none"
+    duration: float = 2.0
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
@@ -197,6 +205,25 @@ async def get_stats():
 @app.get("/api/dashboard")
 async def get_dashboard():
     return database.get_dashboard_stats()
+
+@app.post("/api/generate_video")
+async def generate_video(request: VideoRequest, background_tasks: BackgroundTasks):
+    video_id = database.create_video_record(
+        story_name=request.story_name,
+        transition=request.transition,
+        duration=request.duration
+    )
+    
+    background_tasks.add_task(
+        perform_stitching,
+        video_id=video_id,
+        files=request.files,
+        story_name=request.story_name,
+        transition=request.transition,
+        duration=request.duration
+    )
+    
+    return {"status": "submitted", "video_id": video_id}
 
 @app.post("/api/delete_story/{story_name}")
 async def delete_story(story_name: str):
