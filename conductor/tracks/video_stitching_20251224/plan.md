@@ -13,7 +13,7 @@ Goal: Implement the core logic for combining images/videos into an MP4 file with
 ## Phase 2: Selection UI and Generation API
 Goal: Enable users to select scenes and trigger the video generation process.
 
-- [ ] Task: Write Tests for video generation API endpoint
+- [x] Task: Write Tests for video generation API endpoint 3dd3457
 - [ ] Task: Implement selection UI in the existing Gallery (checkboxes, "Select All" toggle)
 - [ ] Task: Implement the POST /api/generate_video endpoint to trigger stitching
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Selection UI and Generation API' (Protocol in workflow.md)
