@@ -16,6 +16,7 @@ import urllib.request
 # Add scripts folder to path to import story_manager
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "scripts"))
 from story_manager import StoryManager
+from video_utils import VideoStitcher
 import database
 
 app = FastAPI()
@@ -37,6 +38,18 @@ database.init_db()
 # Initialize Manager (default to geronimo.story)
 STORY_PATH = os.path.join(BASE_DIR, "data", "stories", "geronimo.story")
 manager = StoryManager(STORY_PATH)
+stitcher = VideoStitcher(output_root=OUTPUT_DIR)
+
+def perform_stitching(video_id: int, files: list, story_name: str, transition: str, duration: float):
+    """Background task to perform video stitching and update DB."""
+    try:
+        output_path = stitcher.stitch(files, story_name, transition, duration)
+        if output_path:
+            filename = os.path.basename(output_path)
+            database.update_video_record(video_id, filename, status='completed')
+    except Exception as e:
+        print(f"Video stitching background task failed: {e}")
+        database.update_video_record(video_id, None, status='failed')
 
 def enrich_scenes_with_ids(scenes):
     """Helper to inject DB IDs into scene data for display"""

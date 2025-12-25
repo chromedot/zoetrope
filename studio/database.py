@@ -47,6 +47,20 @@ def init_db():
             filename TEXT
         )
     ''')
+
+    # New table for Video Gallery
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS generated_videos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            story_name TEXT,
+            filename TEXT,
+            transition TEXT,
+            duration REAL,
+            status TEXT DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            completed_at TIMESTAMP
+        )
+    ''')
     
     conn.commit()
     conn.close()
@@ -158,5 +172,58 @@ def delete_story_generations(story_name):
     conn = get_db_connection()
     c = conn.cursor()
     c.execute('DELETE FROM generated_images WHERE story_name = ?', (story_name,))
+    conn.commit()
+    conn.close()
+
+# --- Video Generation Functions ---
+
+def create_video_record(story_name, transition, duration):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        '''INSERT INTO generated_videos 
+           (story_name, transition, duration, status) 
+           VALUES (?, ?, ?, 'pending')''',
+        (story_name, transition, duration)
+    )
+    new_id = c.lastrowid
+    conn.commit()
+    conn.close()
+    return new_id
+
+def update_video_record(video_id, filename, status='completed'):
+    conn = get_db_connection()
+    c = conn.cursor()
+    now = datetime.datetime.now()
+    c.execute(
+        '''UPDATE generated_videos 
+           SET status=?, filename=?, completed_at=? 
+           WHERE id=?''',
+        (status, filename, now, video_id)
+    )
+    conn.commit()
+    conn.close()
+
+def get_all_videos():
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('SELECT * FROM generated_videos WHERE status="completed" ORDER BY id DESC')
+    rows = c.fetchall()
+    conn.close()
+    return rows
+
+def delete_video_record(video_id):
+    conn = get_db_connection()
+    c = conn.cursor()
+    # First get the filename to delete from disk? 
+    # (Protocol says management actions include delete)
+    c.execute('SELECT story_name, filename FROM generated_videos WHERE id = ?', (video_id,))
+    row = c.fetchone()
+    if row:
+        video_path = os.path.join("/data/comfy/output", row['story_name'], "videos", row['filename'])
+        if os.path.exists(video_path):
+            os.remove(video_path)
+    
+    c.execute('DELETE FROM generated_videos WHERE id = ?', (video_id,))
     conn.commit()
     conn.close()
