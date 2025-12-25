@@ -9,12 +9,12 @@ Goal: Create the necessary backend logic to provide data for the dashboard.
 - [x] Task: Implement story statistics API (FastAPI endpoints and database queries) 74dcce6
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Backend API for Story Statistics' (Protocol in workflow.md) 3a9e6d2
 
-## Phase 2: Frontend Dashboard Structure
+## Phase 2: Frontend Dashboard Structure [checkpoint: a9315c9]
 Goal: Build the visual structure and layout of the dashboard.
 
 - [x] Task: Write Tests for Dashboard UI component/template structure 63fc197
 - [x] Task: Implement Dashboard UI (HTML/CSS) listing stories with basic info 9c40ac8
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Frontend Dashboard Structure' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Frontend Dashboard Structure' (Protocol in workflow.md) a9315c9
 
 ## Phase 3: Integration and Interaction
 Goal: Connect the frontend to the backend and add interactivity.
