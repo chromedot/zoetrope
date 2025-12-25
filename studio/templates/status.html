@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    .stat-card {
+        background-color: var(--card-bg);
+        padding: 1.5rem;
+        border-radius: 8px;
+        text-align: center;
+    }
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: var(--accent-color);
+        margin: 1rem 0;
+    }
+    .stat-label {
+        color: #aaa;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .chart-container {
+        background-color: var(--card-bg);
+        padding: 1rem;
+        border-radius: 8px;
+        min-height: 300px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>System Status</h1>
+
+<div class="dashboard-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Images Generated</div>
+        <div class="stat-value" id="total-images">-</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Avg Generation Time</div>
+        <div class="stat-value" id="avg-time">-</div>
+        <div style="font-size:0.8rem; color:#666;">seconds</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Compute Time</div>
+        <div class="stat-value" id="total-time">-</div>
+        <div style="font-size:0.8rem; color:#666;">seconds</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">ComfyUI Queue</div>
+        <div class="stat-value" id="queue-count">-</div>
+        <div style="font-size:0.8rem; color:#666;">Running / Pending</div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="chart-container">
+        <h3>System Load (GPU/CPU/RAM)</h3>
+        <canvas id="loadChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <h3>Thermals & Fan</h3>
+        <canvas id="thermalChart"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Charts Init
+    const loadCtx = document.getElementById('loadChart').getContext('2d');
+    const thermalCtx = document.getElementById('thermalChart').getContext('2d');
+    
+    const chartConfig = {
+        type: 'line',
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, max: 100 }
+            },
+            animation: false
+        }
+    };
+
+    const loadChart = new Chart(loadCtx, {
+        ...chartConfig,
+        data: {
+            labels: [],
+            datasets: [
+                { label: 'GPU Load %', data: [], borderColor: 'rgb(75, 192, 192)', tension: 0.1 },
+                { label: 'CPU Load %', data: [], borderColor: 'rgb(255, 99, 132)', tension: 0.1 },
+                { label: 'RAM %', data: [], borderColor: 'rgb(54, 162, 235)', tension: 0.1 }
+            ]
+        }
+    });
+
+    const thermalChart = new Chart(thermalCtx, {
+        ...chartConfig,
+        data: {
+            labels: [],
+            datasets: [
+                { label: 'GPU Temp (C)', data: [], borderColor: 'rgb(255, 159, 64)', tension: 0.1 },
+                { label: 'Fan Speed %', data: [], borderColor: 'rgb(153, 102, 255)', tension: 0.1 }
+            ]
+        }
+    });
+
+    // Data Fetching
+    async function updateStats() {
+        // 1. Generation Stats
+        try {
+            const res = await fetch('/api/stats');
+            const data = await res.json();
+            document.getElementById('total-images').innerText = data.count;
+            document.getElementById('avg-time').innerText = data.avg_time;
+            document.getElementById('total-time').innerText = data.total_time;
+        } catch(e) { console.error(e); }
+
+        // 2. Queue Stats
+        try {
+            const res = await fetch('/api/queue');
+            const data = await res.json();
+            document.getElementById('queue-count').innerText = `${data.running} / ${data.pending}`;
+        } catch(e) { console.error(e); }
+
+        // 3. System Stats (Charts)
+        try {
+            const res = await fetch('/api/system_stats');
+            const data = await res.json();
+            
+            const now = new Date().toLocaleTimeString();
+            
+            // Limit points
+            if (loadChart.data.labels.length > 20) {
+                loadChart.data.labels.shift();
+                loadChart.data.datasets.forEach(d => d.data.shift());
+                thermalChart.data.labels.shift();
+                thermalChart.data.datasets.forEach(d => d.data.shift());
+            }
+
+            // Update Load Chart
+            loadChart.data.labels.push(now);
+            loadChart.data.datasets[0].data.push(data.gpu_usage);
+            loadChart.data.datasets[1].data.push(data.cpu_usage);
+            loadChart.data.datasets[2].data.push(data.ram_usage);
+            loadChart.update();
+
+            // Update Thermal Chart
+            thermalChart.data.labels.push(now);
+            thermalChart.data.datasets[0].data.push(data.gpu_temp);
+            thermalChart.data.datasets[1].data.push(data.fan_speed);
+            thermalChart.update();
+            
+        } catch(e) { console.error(e); }
+    }
+
+    // Start Polling
+    setInterval(updateStats, 2000);
+    updateStats();
+</script>
+{% endblock %}

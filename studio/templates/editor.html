@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+    .editor-container {
+        display: flex;
+        gap: 2rem;
+        height: 80vh;
+    }
+    .image-panel {
+        flex: 1;
+        background-color: #000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        overflow: hidden;
+        padding: 1rem;
+    }
+    .image-container {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        overflow: hidden;
+    }
+    .image-panel img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+    .controls-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        overflow-y: auto;
+    }
+    textarea {
+        width: 100%;
+        height: 150px;
+        background-color: #2c2c2c;
+        border: 1px solid #444;
+        color: var(--text-color);
+        padding: 0.5rem;
+        border-radius: 4px;
+        resize: vertical;
+        font-family: inherit;
+    }
+    .action-row {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        margin-top: 0.5rem;
+    }
+    .info-box {
+        background: #252525;
+        padding: 1rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .status-bar {
+        margin-top: auto;
+        padding: 1rem;
+        background: #333;
+        border-radius: 4px;
+        text-align: center;
+        display: none;
+        font-weight: bold;
+        transition: background-color 0.5s;
+    }
+    .status-bar.complete {
+        background-color: #4caf50;
+        color: white;
+    }
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255,255,255,.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 10px;
+        vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .ai-box {
+        border: 1px solid var(--accent-color);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-top: 1rem;
+        width: 100%;
+        background-color: rgba(30,30,30,0.9);
+    }
+    .subtitle-id {
+        font-size: 0.8em;
+        color: #aaa;
+        margin-left: 10px;
+    }
+    select {
+        background: #333;
+        color: #fff;
+        border: 1px solid #555;
+        padding: 0.3rem;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="editor-container">
+    <div class="image-panel">
+        <div class="image-container">
+            {% if scene.image_path %}
+            <img id="main-image" src="/images/{{ scene.image_path }}" alt="Scene Image">
+            {% else %}
+            <div id="no-image-text">No Image Generated</div>
+            {% endif %}
+        </div>
+        
+        <!-- AI Refinement (Moved here) -->
+        <div class="ai-box">
+            <h3 style="margin-top:0;">AI Prompt Refinement</h3>
+            <div style="display:flex; gap:0.5rem;">
+                <input type="text" id="ai-instructions" placeholder="e.g., Make it more dramatic, add rain..." style="flex:1; padding: 0.5rem; background:#333; color:#fff; border:1px solid #555;">
+                <button onclick="refinePrompt()" style="background-color: #4caf50;">Refine</button>
+            </div>
+            <div id="ai-loading" style="display:none; margin-top:5px;">Thinking...</div>
+        </div>
+    </div>
+    
+    <div class="controls-panel">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>Scene {{ scene.scene }} <span class="subtitle-id">ID: #{{ scene.db_id or 'N/A' }}</span></h2>
+            <button class="btn-secondary" onclick="window.location.href='/gallery'">Back to Gallery</button>
+        </div>
+        
+        <p>{{ scene.description }}</p>
+        
+        <!-- Prompt Editor -->
+        <div>
+            <label>Prompt:</label>
+            <textarea id="prompt-text">{{ scene.prompt }}</textarea>
+            
+            <div class="action-row">
+                <button id="btn-save" onclick="savePrompt()">Save Prompt</button>
+                <button id="btn-regen" onclick="regenerate()" style="background-color: var(--accent-color);">Regenerate</button>
+            </div>
+        </div>
+
+        <!-- Seed Options -->
+        <div class="info-box">
+            <div>Seed: <span id="seed-val">{{ scene.seed }}</span></div>
+            <div>
+                <label for="seed-mode" style="margin-right:5px;">Mode:</label>
+                <select id="seed-mode">
+                    <option value="random">Random Seed</option>
+                    <option value="fixed">Keep Same (Fixed)</option>
+                    <option value="increment">Increment (+1)</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="status-bar" class="status-bar">
+            <div class="loading-spinner"></div> <span id="status-text">Generating...</span> <span id="countdown">30</span>s
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const sceneIndex = {{ index }};
+    let pollingInterval = null;
+    let countdownInterval = null;
+    let secondsLeft = 30;
+
+    async function savePrompt() {
+        const prompt = document.getElementById('prompt-text').value;
+        const btn = document.getElementById('btn-save');
+        
+        await fetch(`/api/update_prompt/${sceneIndex}`, {
+            method: 'POST',
+            body: new URLSearchParams({ prompt: prompt })
+        });
+        
+        // Visual feedback
+        const originalText = btn.innerText;
+        btn.innerText = "Saved!";
+        btn.disabled = true;
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }, 1500);
+    }
+
+    async function regenerate() {
+        // Save prompt first
+        const prompt = document.getElementById('prompt-text').value;
+        await fetch(`/api/update_prompt/${sceneIndex}`, {
+            method: 'POST',
+            body: new URLSearchParams({ prompt: prompt })
+        });
+
+        // Get Seed Mode
+        const seedMode = document.getElementById('seed-mode').value;
+
+        // Start countdown
+        secondsLeft = 30;
+        document.getElementById('countdown').innerText = secondsLeft;
+        document.getElementById('status-bar').style.display = 'block';
+        document.getElementById('status-bar').className = 'status-bar'; // Reset classes
+        document.getElementById('status-text').innerText = "Generating...";
+        document.getElementById('btn-regen').disabled = true;
+        
+        if (countdownInterval) clearInterval(countdownInterval);
+        countdownInterval = setInterval(() => {
+            secondsLeft--;
+            if (secondsLeft < 0) secondsLeft = 0;
+            document.getElementById('countdown').innerText = secondsLeft;
+        }, 1000);
+
+        // Pass seed_mode to API
+        const res = await fetch(`/api/regenerate/${sceneIndex}?seed_mode=${seedMode}`, { method: 'POST' });
+        const data = await res.json();
+        
+        if (data.status === 'submitted') {
+            // Update Seed Display if available immediately (optional, or wait for refresh)
+            if (data.seed) {
+                document.getElementById('seed-val').innerText = data.seed;
+            }
+            
+            // Start polling for the new file prefix
+            pollForImage(data.prefix, data.run_id);
+        } else {
+            alert('Error submitting generation: ' + data.message);
+            resetStatus();
+        }
+    }
+    
+    function resetStatus() {
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (pollingInterval) clearInterval(pollingInterval);
+        document.getElementById('status-bar').style.display = 'none';
+        document.getElementById('btn-regen').disabled = false;
+    }
+    
+    function pollForImage(prefix, runId) {
+        if (pollingInterval) clearInterval(pollingInterval);
+        
+        pollingInterval = setInterval(async () => {
+            const res = await fetch(`/api/check_status?prefix=${encodeURIComponent(prefix)}&run_id=${runId}`);
+            const data = await res.json();
+            
+            if (data.ready) {
+                clearInterval(pollingInterval);
+                clearInterval(countdownInterval);
+                
+                // Show Complete
+                const statusBar = document.getElementById('status-bar');
+                statusBar.classList.add('complete');
+                statusBar.innerHTML = "Complete!";
+                
+                setTimeout(() => {
+                    // Refresh image with cache buster
+                    document.getElementById('main-image').src = data.url + '?t=' + new Date().getTime();
+                    statusBar.style.display = 'none';
+                    document.getElementById('btn-regen').disabled = false;
+                    
+                    // Update ID if returned
+                    if (data.id) {
+                         document.querySelector('.subtitle-id').innerText = 'ID: #' + data.id;
+                    }
+                    
+                    // Reset status bar HTML for next time
+                    statusBar.innerHTML = '<div class="loading-spinner"></div> <span id="status-text">Generating...</span> <span id="countdown">30</span>s';
+                    statusBar.classList.remove('complete');
+                }, 500); // 0.5s delay
+            }
+        }, 1000);
+    }
+    
+    async function refinePrompt() {
+        const instructions = document.getElementById('ai-instructions').value;
+        const currentPrompt = document.getElementById('prompt-text').value;
+        
+        if (!instructions) return alert("Please enter instructions.");
+        
+        document.getElementById('ai-loading').style.display = 'block';
+        
+        const res = await fetch('/api/refine_prompt', {
+            method: 'POST',
+            body: new URLSearchParams({ prompt: currentPrompt, instructions: instructions })
+        });
+        const data = await res.json();
+        
+        document.getElementById('ai-loading').style.display = 'none';
+        
+        if (data.status === 'success') {
+            document.getElementById('prompt-text').value = data.new_prompt;
+        } else {
+            alert('AI Error: ' + data.message);
+        }
+    }
+</script>
+{% endblock %}

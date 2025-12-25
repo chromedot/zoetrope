@@ -1,0 +1,39 @@
+# --- System & Environment ---
+comfyui-env/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+
+# --- ComfyUI Core & Runtime ---
+# We generally don't want to commit the ComfyUI engine itself, 
+# as users should clone the latest version or use our setup script.
+ComfyUI/
+
+# --- Large Model Files ---
+# Never commit these. They are too big.
+models/
+models (Copy)/
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.gguf
+*.bin
+
+# --- Outputs & Logs ---
+output/
+*.log
+wget-log*
+*.tmp
+
+# --- User Specific Configs ---
+# We keep templates, but ignore active local configs
+__manager/
+last_run.json
+help_log.txt
+
+# --- Temporary/Backup Files ---
+*.bak
+*.swp

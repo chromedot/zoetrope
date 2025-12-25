@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    .scene-card {
+        background-color: var(--card-bg);
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+        position: relative;
+    }
+    .scene-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+    .card-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        background-color: #333;
+    }
+    .card-content {
+        padding: 1rem;
+    }
+    .card-title {
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    .card-desc {
+        font-size: 0.9rem;
+        color: #aaa;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .status-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0,0,0,0.7);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="gallery-grid">
+    {% for scene in scenes %}
+    <div class="scene-card" onclick="window.location.href='/scene/{{ loop.index0 }}'">
+        {% if scene.image_path %}
+        <img src="/images/{{ scene.image_path }}" class="card-image" alt="Scene {{ scene.scene }}">
+        {% else %}
+        <div class="card-image" style="display:flex;align-items:center;justify-content:center;">No Image</div>
+        {% endif %}
+        
+        <div class="status-badge">
+            {% if scene.status == 'locked' %}🔒 Locked{% else %}🎲 Random{% endif %}
+        </div>
+        
+        <div class="card-content">
+            <div class="card-title">Scene {{ scene.scene }}</div>
+            <div style="font-size:0.8em; color:#aaa; margin-top:5px;">ID: #{{ scene.db_id or 'N/A' }}</div>
+            <div class="card-desc">{{ scene.description }}</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
