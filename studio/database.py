@@ -120,7 +120,7 @@ def get_recent_generations(limit=10):
     return rows
 
 def get_image_id_by_filename(filename):
-    conn = get_db_connection()
+    conn = database.get_db_connection()
     c = conn.cursor()
     # Handle cases where filename might be full path or just name
     base_name = os.path.basename(filename)
@@ -128,3 +128,28 @@ def get_image_id_by_filename(filename):
     row = c.fetchone()
     conn.close()
     return row['id'] if row else None
+
+def get_dashboard_stats():
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('''
+        SELECT 
+            story_name,
+            COUNT(*) as total_scenes,
+            SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_scenes
+        FROM generated_images
+        GROUP BY story_name
+    ''')
+    rows = c.fetchall()
+    conn.close()
+    
+    stats = []
+    for row in rows:
+        status = "completed" if row['total_scenes'] == row['completed_scenes'] else "in_progress"
+        stats.append({
+            "story_name": row['story_name'],
+            "total_scenes": row['total_scenes'],
+            "completed_scenes": row['completed_scenes'],
+            "status": status
+        })
+    return stats

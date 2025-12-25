@@ -176,6 +176,10 @@ async def check_status(prefix: str, run_id: int = None):
 async def get_stats():
     return database.get_generation_stats()
 
+@app.get("/api/dashboard")
+async def get_dashboard():
+    return database.get_dashboard_stats()
+
 @app.get("/api/queue")
 async def get_queue():
     try:
