@@ -53,6 +53,14 @@
 {% endblock %}
 
 {% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Story Gallery</h2>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <button id="select-all-btn" class="btn-secondary">Select All</button>
+        <button id="generate-video-btn" title="Stitch selected scenes into a video">🎬 Generate Video</button>
+    </div>
+</div>
+
 <div class="gallery-grid">
     {% for scene in scenes %}
     <div class="scene-card" onclick="window.location.href='/scene/{{ loop.index0 }}'">
@@ -62,8 +70,11 @@
         <div class="card-image" style="display:flex;align-items:center;justify-content:center;">No Image</div>
         {% endif %}
         
-        <div class="status-badge">
-            {% if scene.status == 'locked' %}🔒 Locked{% else %}🎲 Random{% endif %}
+        <div class="status-badge" style="display: flex; align-items: center; gap: 5px;">
+            <input type="checkbox" class="scene-checkbox" data-path="{{ scene.image_path }}" 
+                   {% if scene.image_path %}checked{% else %}disabled{% endif %}
+                   onclick="event.stopPropagation();" style="width: 18px; height: 18px; cursor: pointer;">
+            {% if scene.status == 'locked' %}🔒{% else %}🎲{% endif %}
         </div>
         
         <div class="card-content">
@@ -74,4 +85,52 @@
     </div>
     {% endfor %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('select-all-btn').addEventListener('click', () => {
+        const checkboxes = document.querySelectorAll('.scene-checkbox:not(:disabled)');
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        checkboxes.forEach(cb => cb.checked = !allChecked);
+        document.getElementById('select-all-btn').textContent = allChecked ? 'Select All' : 'Unselect All';
+    });
+
+    document.getElementById('generate-video-btn').addEventListener('click', async () => {
+        const selectedCheckboxes = document.querySelectorAll('.scene-checkbox:checked');
+        const files = Array.from(selectedCheckboxes).map(cb => 'output/' + cb.dataset.path);
+        
+        if (files.length === 0) {
+            alert('Please select at least one scene with an image.');
+            return;
+        }
+
+        const storyName = window.location.pathname.includes('geronimo') ? 'geronimo' : 'geronimo'; // Hardcoded for now as per app.py default
+        // Actually, we should ideally get story name from context, but app.py currently only supports one.
+        
+        if (!confirm(`Generate a video from ${files.length} scenes?`)) return;
+
+        try {
+            const response = await fetch('/api/generate_video', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    story_name: 'geronimo',
+                    files: files,
+                    transition: 'none',
+                    duration: 2.0
+                })
+            });
+            const data = await response.json();
+            if (data.status === 'submitted') {
+                alert('Video generation started in the background! You can check the status in the Video Gallery soon.');
+            } else {
+                alert('Error starting video generation.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred.');
+        }
+    });
+</script>
 {% endblock %}
