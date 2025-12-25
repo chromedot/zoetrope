@@ -15,7 +15,7 @@ Goal: Enable users to select scenes and trigger the video generation process.
 
 - [x] Task: Write Tests for video generation API endpoint 3dd3457
 - [x] Task: Implement selection UI in the existing Gallery (checkboxes, "Select All" toggle) 1b4dbb4
-- [ ] Task: Implement the POST /api/generate_video endpoint to trigger stitching
+- [x] Task: Implement the POST /api/generate_video endpoint to trigger stitching 5cca170
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Selection UI and Generation API' (Protocol in workflow.md)
 
 ## Phase 3: Video Gallery and Management
