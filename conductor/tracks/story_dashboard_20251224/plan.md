@@ -16,9 +16,9 @@ Goal: Build the visual structure and layout of the dashboard.
 - [x] Task: Implement Dashboard UI (HTML/CSS) listing stories with basic info 9c40ac8
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Frontend Dashboard Structure' (Protocol in workflow.md) a9315c9
 
-## Phase 3: Integration and Interaction
+## Phase 3: Integration and Interaction [checkpoint: 8d3f495]
 Goal: Connect the frontend to the backend and add interactivity.
 
 - [x] Task: Write Tests for dashboard-API integration (dynamic loading and actions) a05381a
 - [x] Task: Implement dynamic data loading and quick actions (Generate, Review, Delete) dd02958
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Integration and Interaction' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Integration and Interaction' (Protocol in workflow.md) 8d3f495
