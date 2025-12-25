@@ -33,12 +33,20 @@ class VideoStitcher:
         list_path = output_path + ".txt"
         with open(list_path, "w") as f:
             for file_path in files:
-                # ffmpeg requires paths to be escaped or relative in some contexts
-                # Using absolute path with full escaping
-                f.write(f"file '{os.path.abspath(file_path)}'\n")
+                # Ensure we have the full path
+                if not os.path.isabs(file_path):
+                    full_path = os.path.abspath(os.path.join(self.output_root, file_path))
+                else:
+                    full_path = file_path
+                
+                f.write(f"file '{full_path}'\n")
                 f.write(f"duration {duration}\n")
-            # Last file needs to be repeated or it might be cut short by some players
-            f.write(f"file '{os.path.abspath(files[-1])}'\n")
+            # Last file needs to be repeated
+            if not os.path.isabs(files[-1]):
+                last_full_path = os.path.abspath(os.path.join(self.output_root, files[-1]))
+            else:
+                last_full_path = files[-1]
+            f.write(f"file '{last_full_path}'\n")
 
         # Command: ffmpeg -f concat -safe 0 -i list.txt -c:v libx264 -pix_fmt yuv420p out.mp4
         cmd = [

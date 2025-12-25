@@ -98,7 +98,7 @@
 
     document.getElementById('generate-video-btn').addEventListener('click', async () => {
         const selectedCheckboxes = document.querySelectorAll('.scene-checkbox:checked');
-        const files = Array.from(selectedCheckboxes).map(cb => 'output/' + cb.dataset.path);
+        const files = Array.from(selectedCheckboxes).map(cb => cb.dataset.path);
         
         if (files.length === 0) {
             alert('Please select at least one scene with an image.');

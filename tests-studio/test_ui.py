@@ -66,3 +66,15 @@ def test_delete_story_api():
     # Verify story is gone
     stats = database.get_dashboard_stats()
     assert not any(s["story_name"] == "to_delete" for s in stats)
+
+def test_gallery_ui_elements():
+    """Test if the gallery page contains the video stitching UI elements."""
+    response = client.get("/gallery")
+    assert response.status_code == 200
+    html = response.text
+    
+    # Check for Video Stitching UI elements
+    assert 'id="select-all-btn"' in html
+    assert 'id="generate-video-btn"' in html
+    assert 'class="scene-checkbox"' in html
+    assert 'Generate Video' in html

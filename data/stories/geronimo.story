@@ -13,18 +13,18 @@
     "description": "Massive 1930s Cinema: Audience of 60+ watching the 'Geronimo' movie intro",
     "prompt": "A wide-angle shot from the back of a large, ornate 1930s movie theater. A massive silver screen dominates the front, showing the title card of a movie. In huge, bold cinematic letters, the name 'GERONIMO' is displayed across the screen, overlaying a dramatic black and white portrait of the Apache leader. The theater is packed with at least 60 captivated people, including rows of children in the front, all looking up at the screen. A bright, dusty projector beam cuts through the dark, atmospheric room.",
     "status": "draft",
-    "seed": 313079351893,
-    "image_path": "geronimo/new:2048_scene_02_Massive1930sCinemaAudienceof60watchingtheGeronimomovieintro_00001_.png",
-    "db_id": 39
+    "seed": 471138895523,
+    "image_path": "geronimo/new:2206_scene_02_Massive1930sCinemaAudienceof60watchingtheGeronimomovieintro_00001_.png",
+    "db_id": 54
   },
   {
     "scene": 3,
     "description": "Handsome Soldier in Towel",
-    "prompt": "A huge, handsome 19-year-old soldier, extremely muscular and fit, walking back from the showers through a crowded hangar. He walks past other soldiers who are standing and talking in uniform. He is physically imposing. A comic-book style speech bubble appears near him with the text 'Geronimo?'.",
+    "prompt": "A huge, handsome 19-year-old soldier, extremely muscular and fit, walking back from the showers through a crowded hangar. He walks past other soldiers who are standing and talking in uniform. He is physically imposing. A comic-book style speech bubble appears near him with the text \"GERONIMO\"",
     "status": "draft",
-    "seed": 527092887490,
-    "image_path": "geronimo/new:2104_scene_03_HandsomeSoldierinTowel_00001_.png",
-    "db_id": 40
+    "seed": 794186318348,
+    "image_path": "geronimo/new:2237_scene_03_HandsomeSoldierinTowel_00001_.png",
+    "db_id": 53
   },
   {
     "scene": 4,
