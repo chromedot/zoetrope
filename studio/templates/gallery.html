@@ -56,6 +56,11 @@
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
     <h2>Story Gallery</h2>
     <div style="display: flex; gap: 1rem; align-items: center;">
+        <select id="transition-select" style="background: var(--card-bg); color: var(--text-color); border: 1px solid #444; padding: 0.5rem; border-radius: 4px; font-weight: bold;">
+            <option value="none">🎬 Simple Cuts</option>
+            <option value="crossfade">✨ Crossfade</option>
+            <option value="ai_morph">🧠 AI Morph (Stub)</option>
+        </select>
         <button id="select-all-btn" class="btn-secondary">Select All</button>
         <button id="generate-video-btn" title="Stitch selected scenes into a video">🎬 Generate Video</button>
     </div>
@@ -108,7 +113,9 @@
         const storyName = window.location.pathname.includes('geronimo') ? 'geronimo' : 'geronimo'; // Hardcoded for now as per app.py default
         // Actually, we should ideally get story name from context, but app.py currently only supports one.
         
-        if (!confirm(`Generate a video from ${files.length} scenes?`)) return;
+        const transition = document.getElementById('transition-select').value;
+        
+        if (!confirm(`Generate a ${transition} video from ${files.length} scenes?`)) return;
 
         try {
             const response = await fetch('/api/generate_video', {
@@ -117,7 +124,7 @@
                 body: JSON.stringify({
                     story_name: 'geronimo',
                     files: files,
-                    transition: 'none',
+                    transition: transition,
                     duration: 2.0
                 })
             });
