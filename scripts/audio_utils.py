@@ -14,6 +14,7 @@ import json
 import httpx
 import time
 import random
+import uuid
 from abc import ABC, abstractmethod
 
 logger = logging.getLogger(__name__)
@@ -87,8 +88,7 @@ class ComfyAudioGenerator(AudioGenerator):
         # Quick hack: We let Comfy save to "audio/sfx" and then we move/rename to output_path.
         # This is safer than trying to force Comfy to write to absolute paths.
         
-        timestamp = int(time.time())
-        filename_prefix = f"sfx_{timestamp}"
+        filename_prefix = f"sfx_{uuid.uuid4()}"
         
         # Update Workflow
         workflow["21"]["inputs"]["filename_prefix"] = filename_prefix

@@ -7,6 +7,7 @@ import time
 import datetime
 import shutil
 import subprocess
+import uuid
 from fastapi import FastAPI, Request, Form, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -94,9 +95,8 @@ async def root():
 @app.post("/api/generate_sfx")
 async def generate_sfx(request: SFXRequest):
     try:
-        # Output path: output/<story>/audio/sfx_<timestamp>.flac
-        # Note: AudioLDM produces .flac
-        filename = f"sfx_{int(time.time())}.flac"
+        # Output path: output/<story>/audio/sfx_<uuid>.flac
+        filename = f"sfx_{uuid.uuid4()}.flac"
         
         # Use safe_join to ensure we are within OUTPUT_DIR
         try:
@@ -279,8 +279,9 @@ async def generate_audio(request: AudioRequest):
             return {"status": "error", "message": "Invalid scene index"}
             
         scene = manager.story_data[request.scene_index]
-        safe_desc = manager.sanitize_filename(scene['description'])
-        filename = f"scene_{scene['scene']:02d}_{safe_desc}.mp3"
+        # Use UUID for collision-proof filename
+        # Format: scene_<index>_<uuid>.mp3
+        filename = f"scene_{scene['scene']:02d}_{uuid.uuid4()}.mp3"
         
         try:
             story_dir = safe_join(OUTPUT_DIR, request.story_name)
