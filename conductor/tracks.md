@@ -4,7 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: Audio-Visual Assembly (The Final Render)
+## [~] Track: Audio-Visual Assembly (The Final Render)
 
 *Link: [./conductor/tracks/av_assembly_20251226/](./conductor/tracks/av_assembly_20251226/)*
 
