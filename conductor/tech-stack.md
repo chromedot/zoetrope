@@ -5,6 +5,7 @@
 - **FastAPI:** Used to build the high-performance web API and management interface for the Studio.
 - **ComfyUI:** The underlying generative engine used for node-based image generation.
 - **edge-tts (Python library):** Used for generating high-quality narration audio. Selected for its balance of quality and performance.
+- **httpx:** Used for non-blocking asynchronous HTTP requests, primarily for communicating with the ComfyUI API.
 
 ## Data Management
 - **SQLite:** A lightweight, serverless database used for persistent storage of story data, scene definitions, and system configurations.
