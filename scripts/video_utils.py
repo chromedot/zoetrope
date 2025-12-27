@@ -20,8 +20,11 @@ class SimpleCutStrategy(TransitionStrategy):
             return None
 
         list_path = output_path + ".txt"
+        
+        if audio_files:
+            logger.warning("SimpleCutStrategy does not support audio mixing yet. Audio files will be ignored.")
+
         with open(list_path, "w") as f:
-            # TODO: Handle audio_files if present
             for file_path in files:
                 if not os.path.isabs(file_path):
                     full_path = os.path.abspath(os.path.join(self.output_root, file_path))
