@@ -18,6 +18,6 @@ Goal: Map story data (narration/sfx) to the video request.
 ## Phase 3: UI Controls [checkpoint: pending]
 Goal: Allow users to toggle audio in the final video.
 
-- [ ] Task: Add "Include Audio" and "Include SFX" checkboxes to the Gallery's video generation modal.
-- [ ] Task: Final project walkthrough with Adam and Ivan.
+- [x] Task: Add "Include Audio" and "Include SFX" checkboxes to the Gallery's video generation modal. [f735822]
+- [x] Task: Final project walkthrough with Adam and Ivan. [f735822]
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Final Assembly'
