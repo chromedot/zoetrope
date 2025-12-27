@@ -10,6 +10,18 @@ class TransitionStrategy(ABC):
     def __init__(self, output_root):
         self.output_root = output_root
 
+    def _resolve_path(self, file_path):
+        if not os.path.isabs(file_path):
+            full_path = os.path.abspath(os.path.join(self.output_root, file_path))
+        else:
+            full_path = file_path
+        
+        if not os.path.exists(full_path):
+            # Log warning or raise error? Raising error is safer for ffmpeg.
+            logger.error(f"File not found: {full_path}")
+            raise FileNotFoundError(f"File not found: {full_path}")
+        return full_path
+
     @abstractmethod
     def build_command(self, files, output_path, duration, audio_files=None, sfx_files=None):
         pass
@@ -26,17 +38,12 @@ class SimpleCutStrategy(TransitionStrategy):
 
         with open(list_path, "w") as f:
             for file_path in files:
-                if not os.path.isabs(file_path):
-                    full_path = os.path.abspath(os.path.join(self.output_root, file_path))
-                else:
-                    full_path = file_path
+                full_path = self._resolve_path(file_path)
                 
                 f.write(f"file '{full_path}'\n")
                 f.write(f"duration {duration}\n")
-            if not os.path.isabs(files[-1]):
-                last_full_path = os.path.abspath(os.path.join(self.output_root, files[-1]))
-            else:
-                last_full_path = files[-1]
+            
+            last_full_path = self._resolve_path(files[-1])
             f.write(f"file '{last_full_path}'\n")
 
         cmd = [
@@ -70,10 +77,7 @@ class CrossFadeStrategy(TransitionStrategy):
         # ffmpeg -loop 1 -t 3 -i 1.png -loop 1 -t 3 -i 2.png ...
         inputs = []
         for f in files:
-            if not os.path.isabs(f):
-                full_path = os.path.abspath(os.path.join(self.output_root, f))
-            else:
-                full_path = f
+            full_path = self._resolve_path(f)
             inputs.extend(["-loop", "1", "-t", str(duration), "-i", full_path])
             
         # Build Filter Complex
@@ -168,21 +172,24 @@ class AudioMixedStrategy(TransitionStrategy):
             current_sfx = None
             
             if audio_files and i < len(audio_files) and audio_files[i]:
-                current_audio = audio_files[i]
-                audio_dur = self._get_audio_duration(current_audio)
-                if audio_dur > 0:
-                    scene_duration = audio_dur
+                try:
+                    current_audio = self._resolve_path(audio_files[i])
+                    audio_dur = self._get_audio_duration(current_audio)
+                    if audio_dur > 0:
+                        scene_duration = audio_dur
+                except FileNotFoundError:
+                    logger.warning(f"Audio file not found: {audio_files[i]}, skipping sync.")
             
             if sfx_files and i < len(sfx_files) and sfx_files[i]:
-                current_sfx = sfx_files[i]
+                try:
+                    current_sfx = self._resolve_path(sfx_files[i])
+                except FileNotFoundError:
+                    logger.warning(f"SFX file not found: {sfx_files[i]}")
             
             # --- Inputs ---
             
             # 1. Video Input (Image)
-            if not os.path.isabs(img_file):
-                img_path = os.path.abspath(os.path.join(self.output_root, img_file))
-            else:
-                img_path = img_file
+            img_path = self._resolve_path(img_file)
             
             # Loop image for scene_duration
             inputs.extend(["-loop", "1", "-t", str(scene_duration), "-i", img_path])
