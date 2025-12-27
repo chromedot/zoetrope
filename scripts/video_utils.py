@@ -11,16 +11,17 @@ class TransitionStrategy(ABC):
         self.output_root = output_root
 
     @abstractmethod
-    def build_command(self, files, output_path, duration):
+    def build_command(self, files, output_path, duration, audio_files=None):
         pass
 
 class SimpleCutStrategy(TransitionStrategy):
-    def build_command(self, files, output_path, duration):
+    def build_command(self, files, output_path, duration, audio_files=None):
         if not files:
             return None
 
         list_path = output_path + ".txt"
         with open(list_path, "w") as f:
+            # TODO: Handle audio_files if present
             for file_path in files:
                 if not os.path.isabs(file_path):
                     full_path = os.path.abspath(os.path.join(self.output_root, file_path))
@@ -48,7 +49,7 @@ class SimpleCutStrategy(TransitionStrategy):
         return cmd
 
 class CrossFadeStrategy(TransitionStrategy):
-    def build_command(self, files, output_path, duration):
+    def build_command(self, files, output_path, duration, audio_files=None):
         if not files:
             return None
             
@@ -80,7 +81,7 @@ class CrossFadeStrategy(TransitionStrategy):
         
         # Special case: 1 file -> just copy
         if len(files) == 1:
-            return SimpleCutStrategy(self.output_root).build_command(files, output_path, duration)
+            return SimpleCutStrategy(self.output_root).build_command(files, output_path, duration, audio_files)
 
         for i in range(len(files) - 1):
             if i == 0:
@@ -116,9 +117,9 @@ class CrossFadeStrategy(TransitionStrategy):
         return cmd
 
 class AIMorphStrategy(TransitionStrategy):
-    def build_command(self, files, output_path, duration):
+    def build_command(self, files, output_path, duration, audio_files=None):
         logger.warning("AI Morph not implemented. Using fallback.")
-        return SimpleCutStrategy(self.output_root).build_command(files, output_path, duration)
+        return SimpleCutStrategy(self.output_root).build_command(files, output_path, duration, audio_files)
 
 class VideoStitcher:
     def __init__(self, output_root="/data/comfy/output"):
@@ -131,7 +132,7 @@ class VideoStitcher:
         os.makedirs(video_dir, exist_ok=True)
         return os.path.join(video_dir, f"{story_name}_{timestamp}.mp4")
 
-    def stitch(self, files, story_name, transition="none", duration=2.0):
+    def stitch(self, files, story_name, transition="none", duration=2.0, audio_files=None):
         """Executes the stitching process using the selected strategy."""
         output_path = self.get_output_path(story_name)
         
@@ -144,7 +145,7 @@ class VideoStitcher:
         strategy_class = strategies.get(transition, SimpleCutStrategy)
         strategy = strategy_class(self.output_root)
         
-        cmd = strategy.build_command(files, output_path, duration)
+        cmd = strategy.build_command(files, output_path, duration, audio_files=audio_files)
         
         if not cmd:
             return None
