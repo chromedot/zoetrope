@@ -75,6 +75,8 @@ class VideoRequest(BaseModel):
     files: List[str]
     transition: str = "none"
     duration: float = 2.0
+    audio_files: List[str] = None
+    sfx_files: List[str] = None
 
 class AudioRequest(BaseModel):
     scene_index: int
@@ -85,6 +87,24 @@ class AudioRequest(BaseModel):
 class SFXRequest(BaseModel):
     text: str
     story_name: str
+    scene_index: int = -1
+
+def perform_stitching(video_id: int, files: List[str], story_name: str, transition: str, duration: float, audio_files: List[str] = None, sfx_files: List[str] = None):
+    try:
+        output_path = stitcher.stitch(
+            files, 
+            story_name, 
+            transition=transition, 
+            duration=duration,
+            audio_files=audio_files,
+            sfx_files=sfx_files
+        )
+        # Update DB with success
+        database.update_video_record(video_id, os.path.basename(output_path), status="completed")
+        
+    except Exception as e:
+        print(f"Stitching failed: {e}")
+        database.update_video_record(video_id, None, status="failed")
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
@@ -95,9 +115,14 @@ async def root():
 @app.post("/api/generate_sfx")
 async def generate_sfx(request: SFXRequest):
     try:
-        # Output path: output/<story>/audio/sfx_<short_uuid>.flac
+        # Determine filename format
         short_uuid = str(uuid.uuid4())[:8]
-        filename = f"sfx_{short_uuid}.flac"
+        
+        if request.scene_index >= 0 and request.scene_index < len(manager.story_data):
+            scene = manager.story_data[request.scene_index]
+            filename = f"scene_{scene['scene']:02d}_sfx_{short_uuid}.flac"
+        else:
+            filename = f"sfx_{short_uuid}.flac"
         
         # Use safe_join to ensure we are within OUTPUT_DIR
         try:
@@ -115,6 +140,18 @@ async def generate_sfx(request: SFXRequest):
         # Construct relative path safely
         safe_story_name = os.path.basename(request.story_name) 
         relative_path = f"{safe_story_name}/audio/{filename}"
+        
+        # Update Story Data if scene linked
+        if request.scene_index >= 0 and request.scene_index < len(manager.story_data):
+            scene = manager.story_data[request.scene_index]
+            scene['sfx_file'] = relative_path
+            # Also update sfx_text? Field not defined in spec but useful.
+            scene['sfx_text'] = request.text
+            manager.save_story()
+            
+            # Update Database (Sprint 2 table doesn't have sfx columns yet, skipping or I should add them?)
+            # I'll skip DB update for SFX for now or add it to database.py if I want consistency.
+            # Given the constraints, I'll stick to JSON manager for SFX mapping for now.
         
         return {
             "status": "success", 
@@ -324,13 +361,60 @@ async def generate_video(request: VideoRequest, background_tasks: BackgroundTask
         duration=request.duration
     )
     
+    audio_files = request.audio_files
+    sfx_files = request.sfx_files
+    
+    # Auto-fetch audio if not provided
+    if (not audio_files or not sfx_files) and request.files:
+        try:
+            safe_story_name = os.path.basename(request.story_name)
+            story_path = os.path.join(BASE_DIR, "data", "stories", f"{safe_story_name}.story")
+            
+            if os.path.exists(story_path):
+                # Use a local manager instance to avoid race conditions/state issues with global manager
+                local_manager = StoryManager(story_path)
+                local_manager.refresh_audio_paths()
+                
+                # Map image_path -> scene
+                # We need to handle potential path format differences (relative vs absolute vs prefix)
+                # Helper to normalize for matching: get basename
+                def get_key(path):
+                    return os.path.basename(path) if path else ""
+                
+                image_map = { get_key(s.get('image_path')): s for s in local_manager.story_data }
+                
+                new_audio = []
+                new_sfx = []
+                
+                for file_path in request.files:
+                    key = get_key(file_path)
+                    scene = image_map.get(key)
+                    
+                    if scene:
+                        new_audio.append(scene.get('audio_file'))
+                        new_sfx.append(scene.get('sfx_file'))
+                    else:
+                        new_audio.append(None)
+                        new_sfx.append(None)
+                
+                if not audio_files:
+                    audio_files = new_audio
+                if not sfx_files:
+                    sfx_files = new_sfx
+                    
+        except Exception as e:
+            print(f"Error fetching audio files: {e}")
+            # Proceed without audio if error
+    
     background_tasks.add_task(
         perform_stitching,
         video_id=video_id,
         files=request.files,
         story_name=request.story_name,
         transition=request.transition,
-        duration=request.duration
+        duration=request.duration,
+        audio_files=audio_files,
+        sfx_files=sfx_files
     )
     
     return {"status": "submitted", "video_id": video_id}
