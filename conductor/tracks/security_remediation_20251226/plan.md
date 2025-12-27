@@ -10,9 +10,9 @@ Goal: Prepare the environment with required libraries and document tech stack ch
 ## Phase 2: Asynchronous Audio Utilities Refactor
 Goal: Convert synchronous network calls to non-blocking async calls using `httpx`.
 
-- [ ] Task: Write unit tests for `ComfyAudioGenerator` using `pytest-httpx` to mock ComfyUI responses.
-- [ ] Task: Refactor `scripts/audio_utils.py` to replace `urllib` with `httpx.AsyncClient`.
-- [ ] Task: Verify that `ComfyAudioGenerator.generate` is fully non-blocking and handles timeouts/errors gracefully.
+- [x] Task: Write unit tests for `ComfyAudioGenerator` using `pytest-httpx` to mock ComfyUI responses. fea12d0
+- [x] Task: Refactor `scripts/audio_utils.py` to replace `urllib` with `httpx.AsyncClient`. fea12d0
+- [x] Task: Verify that `ComfyAudioGenerator.generate` is fully non-blocking and handles timeouts/errors gracefully. fea12d0
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Asynchronous Audio Utilities Refactor' (Protocol in workflow.md)
 
 ## Phase 3: Security Hardening (Path Traversal & Filenames)
