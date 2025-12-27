@@ -47,6 +47,28 @@ sfx_generator = ComfyAudioGenerator()
 
 # ...
 
+def safe_join(base_dir, *paths):
+    """
+    Safely joins paths and ensures the result is within the base_dir.
+    Prevents path traversal attacks.
+    """
+    try:
+        # Join the paths
+        final_path = os.path.join(base_dir, *paths)
+        # Resolve absolute paths to handle .. and symlinks
+        resolved_path = os.path.abspath(final_path)
+        resolved_base = os.path.abspath(base_dir)
+        
+        # Check if the resolved path starts with the resolved base directory
+        if not resolved_path.startswith(resolved_base):
+            raise ValueError(f"Path traversal attempt: {final_path} is outside {base_dir}")
+            
+        return resolved_path
+    except Exception as e:
+        # Log the security event
+        print(f"Security Warning: {e}")
+        raise ValueError("Invalid path")
+
 class VideoRequest(BaseModel):
     story_name: str
     files: List[str]
@@ -76,16 +98,21 @@ async def generate_sfx(request: SFXRequest):
         # Note: AudioLDM produces .flac
         filename = f"sfx_{int(time.time())}.flac"
         
-        # Sanitize story_name to prevent path traversal
-        safe_story_name = os.path.basename(request.story_name)
-        
-        audio_dir = os.path.join(OUTPUT_DIR, safe_story_name, "audio")
+        # Use safe_join to ensure we are within OUTPUT_DIR
+        try:
+            story_dir = safe_join(OUTPUT_DIR, request.story_name)
+            audio_dir = safe_join(story_dir, "audio")
+        except ValueError:
+             return {"status": "error", "message": "Invalid story name"}
+
         os.makedirs(audio_dir, exist_ok=True)
         output_path = os.path.join(audio_dir, filename)
         
         # Generate
         await sfx_generator.generate(request.text, output_path)
         
+        # Construct relative path safely
+        safe_story_name = os.path.basename(request.story_name) 
         relative_path = f"{safe_story_name}/audio/{filename}"
         
         return {
@@ -182,19 +209,21 @@ async def check_status(prefix: str, run_id: int = None):
     
     folder, file_prefix = os.path.split(prefix)
     
-    # Security Check: Prevent path traversal
-    # Resolve the full path of the folder where we want to search
-    requested_folder_path = os.path.abspath(os.path.join(OUTPUT_DIR, folder))
-    
-    # Ensure the requested folder is within the OUTPUT_DIR
-    if not requested_folder_path.startswith(os.path.abspath(OUTPUT_DIR)):
+    try:
+        # Verify the folder is safe
+        # We treat OUTPUT_DIR as the root
+        safe_folder = safe_join(OUTPUT_DIR, folder)
+    except ValueError:
         return {"ready": False}
         
-    search_path = os.path.join(requested_folder_path, file_prefix + "*.png")
+    search_path = os.path.join(safe_folder, file_prefix + "*.png")
     files = glob.glob(search_path)
     
     if files:
+        # Sort by modification time to get the latest
         latest_file = max(files, key=os.path.getmtime)
+        
+        # Return relative path for URL
         filename = os.path.basename(latest_file)
         url = f"/images/{folder}/{filename}"
         
@@ -253,11 +282,12 @@ async def generate_audio(request: AudioRequest):
         safe_desc = manager.sanitize_filename(scene['description'])
         filename = f"scene_{scene['scene']:02d}_{safe_desc}.mp3"
         
-        # Sanitize story_name to prevent path traversal
-        safe_story_name = os.path.basename(request.story_name)
-        
-        # Output path: output/<story>/audio/<filename>
-        audio_dir = os.path.join(OUTPUT_DIR, safe_story_name, "audio")
+        try:
+            story_dir = safe_join(OUTPUT_DIR, request.story_name)
+            audio_dir = safe_join(story_dir, "audio")
+        except ValueError:
+            return {"status": "error", "message": "Invalid story name"}
+
         os.makedirs(audio_dir, exist_ok=True)
         output_path = os.path.join(audio_dir, filename)
         
@@ -265,6 +295,7 @@ async def generate_audio(request: AudioRequest):
         await tts_generator.generate(request.text, output_path, voice=request.voice)
         
         # Update Story Data
+        safe_story_name = os.path.basename(request.story_name)
         relative_path = f"{safe_story_name}/audio/{filename}"
         scene['narration_text'] = request.text
         scene['audio_file'] = relative_path
