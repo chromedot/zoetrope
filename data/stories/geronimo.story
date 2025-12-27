@@ -7,8 +7,8 @@
     "seed": 53015322720,
     "image_path": "geronimo/new:2048_scene_01_IntroductionSlideGeronimowasfamousinthelate1800sandwestillsayhisnametoday_00001_.png",
     "db_id": 38,
-    "narration_text": "Test narration text",
-    "audio_file": "geronimo/audio/scene_01_9b073e34.mp3"
+    "narration_text": "bird noises",
+    "audio_file": "/audio/scene_01_IntroductionSlideGeronimowasfamousinthelate1800sandwestillsayhisnametoday.mp3"
   },
   {
     "scene": 2,
@@ -17,7 +17,9 @@
     "status": "draft",
     "seed": 471138895523,
     "image_path": "geronimo/new:2206_scene_02_Massive1930sCinemaAudienceof60watchingtheGeronimomovieintro_00001_.png",
-    "db_id": 54
+    "db_id": 54,
+    "narration_text": "people sittings and waiting",
+    "audio_file": "geronimo/audio/scene_02_8c87c70f.mp3"
   },
   {
     "scene": 3,

@@ -10,6 +10,9 @@ Thumbs.db
 *.sock
 *.pid.lock
 *.pid.lock.tmp  
+pids/
+/tests-studio
+/tests-unit
 
 # --- ComfyUI Core & Runtime ---
 # We generally don't want to commit the ComfyUI engine itself, 

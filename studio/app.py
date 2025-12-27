@@ -372,8 +372,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
-
 # ...
 
 @app.post("/api/generate_video")

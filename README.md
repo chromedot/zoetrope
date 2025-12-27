@@ -18,7 +18,7 @@ This project automates AI storytelling using ComfyUI for image generation and a 
 
 ## Quick Start (Local)
 
-**1. Start the Backend (ComfyUI)**
+**1. Start up Comfyu and Studio app**
 Runs on port **8188**.
 ```bash
 cd scripts
@@ -26,10 +26,10 @@ cd scripts
 ```
 
 **2. Start the Frontend (Story Studio)**
-Runs on port **8000**.
+Runs on port **8189**.
 ```bash
-cd scripts
-./start_studio.sh
+cd /data/comfy
+./evergreen.sh start (stop, status)
 ```
 
 **3. Automation**
