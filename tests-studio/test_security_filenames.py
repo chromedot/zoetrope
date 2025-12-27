@@ -65,9 +65,9 @@ async def test_sfx_filename_is_uuid(httpx_mock, monkeypatch):
     
     # Proper UUID check
     import re
-    # Look for standard UUID pattern
-    match = re.search(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', filename)
-    assert match is not None, f"Filename {filename} does not contain a UUID"
+    # Look for 8-char short UUID pattern (hex)
+    match = re.search(r'sfx_[0-9a-f]{8}\.flac', filename)
+    assert match is not None, f"Filename {filename} does not contain an 8-char hex UUID"
 
 @pytest.mark.asyncio
 async def test_tts_filename_is_uuid(httpx_mock, monkeypatch):
@@ -96,11 +96,6 @@ async def test_tts_filename_is_uuid(httpx_mock, monkeypatch):
     data = response.json()
     filename = data.get("filename")
     
-    # Current implementation: scene_01_description.mp3
-    # We want to verify it DOES NOT use just description, but includes a UUID 
-    # OR we are changing the requirement. 
-    # Plan says: "Refactor filename generation... to use uuid.uuid4()".
-    # This implies we want random filenames or appended UUIDs to avoid collisions.
-    
-    match = re.search(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', filename)
-    assert match is not None, f"Filename {filename} does not contain a UUID"
+    # Format: scene_<index>_<short_uuid>.mp3
+    match = re.search(r'scene_\d{2}_[0-9a-f]{8}\.mp3', filename)
+    assert match is not None, f"Filename {filename} does not contain an 8-char hex UUID"

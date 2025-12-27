@@ -88,7 +88,8 @@ class ComfyAudioGenerator(AudioGenerator):
         # Quick hack: We let Comfy save to "audio/sfx" and then we move/rename to output_path.
         # This is safer than trying to force Comfy to write to absolute paths.
         
-        filename_prefix = f"sfx_{uuid.uuid4()}"
+        short_uuid = str(uuid.uuid4())[:8]
+        filename_prefix = f"sfx_{short_uuid}"
         
         # Update Workflow
         workflow["21"]["inputs"]["filename_prefix"] = filename_prefix

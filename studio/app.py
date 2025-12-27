@@ -95,8 +95,9 @@ async def root():
 @app.post("/api/generate_sfx")
 async def generate_sfx(request: SFXRequest):
     try:
-        # Output path: output/<story>/audio/sfx_<uuid>.flac
-        filename = f"sfx_{uuid.uuid4()}.flac"
+        # Output path: output/<story>/audio/sfx_<short_uuid>.flac
+        short_uuid = str(uuid.uuid4())[:8]
+        filename = f"sfx_{short_uuid}.flac"
         
         # Use safe_join to ensure we are within OUTPUT_DIR
         try:
@@ -279,9 +280,10 @@ async def generate_audio(request: AudioRequest):
             return {"status": "error", "message": "Invalid scene index"}
             
         scene = manager.story_data[request.scene_index]
-        # Use UUID for collision-proof filename
-        # Format: scene_<index>_<uuid>.mp3
-        filename = f"scene_{scene['scene']:02d}_{uuid.uuid4()}.mp3"
+        # Use Short UUID for collision-proof filename
+        # Format: scene_<index>_<short_uuid>.mp3
+        short_uuid = str(uuid.uuid4())[:8]
+        filename = f"scene_{scene['scene']:02d}_{short_uuid}.mp3"
         
         try:
             story_dir = safe_join(OUTPUT_DIR, request.story_name)
