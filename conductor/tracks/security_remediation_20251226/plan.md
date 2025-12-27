@@ -4,7 +4,7 @@
 Goal: Prepare the environment with required libraries and document tech stack changes.
 
 - [x] Task: Install `httpx` in the `comfyui-env` virtual environment. 2aa8eb5
-- [ ] Task: Update `conductor/tech-stack.md` to include `httpx` as a core dependency.
+- [x] Task: Update `conductor/tech-stack.md` to include `httpx` as a core dependency. 604515c
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure & Dependencies' (Protocol in workflow.md)
 
 ## Phase 2: Asynchronous Audio Utilities Refactor
