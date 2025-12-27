@@ -8,7 +8,7 @@
     "image_path": "geronimo/new:2048_scene_01_IntroductionSlideGeronimowasfamousinthelate1800sandwestillsayhisnametoday_00001_.png",
     "db_id": 38,
     "narration_text": "Test narration text",
-    "audio_file": "geronimo/audio/scene_01_IntroductionSlideGeronimowasfamousinthelate1800sandwestillsayhisnametoday.mp3"
+    "audio_file": "geronimo/audio/scene_01_9b073e34.mp3"
   },
   {
     "scene": 2,
