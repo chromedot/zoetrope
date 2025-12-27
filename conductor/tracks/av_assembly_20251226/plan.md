@@ -4,8 +4,8 @@
 Goal: Update the backend to mix audio and sync with video.
 
 - [x] Task: Update `TransitionStrategy` in `video_utils.py` to accept audio file paths for each image. [8527ae3]
-- [ ] Task: Implement `AudioMixedStrategy` (or update existing ones) to use `ffmpeg -i image -i narration -i sfx` with `filter_complex`.
-- [ ] Task: Create a standalone test script `tests-studio/test_av_assembly.py` to verify a 2-scene render.
+- [x] Task: Implement `AudioMixedStrategy` (or update existing ones) to use `ffmpeg -i image -i narration -i sfx` with `filter_complex`. [ce9d9d4]
+- [x] Task: Create a standalone test script `tests-studio/test_av_assembly.py` to verify a 2-scene render. [ce9d9d4]
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Enhanced VideoStitcher'
 
 ## Phase 2: Studio API & Data Mapping [checkpoint: pending]
