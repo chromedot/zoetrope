@@ -57,10 +57,11 @@ class EdgeTTSGenerator(AudioGenerator):
 class ComfyAudioGenerator(AudioGenerator):
     """Implementation using ComfyUI AudioLDM node."""
     
-    def __init__(self, comfy_url="http://127.0.0.1:8188"):
+    def __init__(self, comfy_url="http://127.0.0.1:8188", timeout=120):
         self.comfy_url = comfy_url
         self.prompt_url = f"{comfy_url}/prompt"
         self.history_url = f"{comfy_url}/history"
+        self.timeout = timeout
 
     async def generate(self, text: str, output_path: str, voice: str = None):
         """
@@ -99,7 +100,7 @@ class ComfyAudioGenerator(AudioGenerator):
             logger.info(f"ComfyUI SFX task queued: {prompt_id}")
             
             # 3. Poll for completion
-            history = await self._wait_for_history(client, prompt_id)
+            history = await self._wait_for_history(client, prompt_id, timeout=self.timeout)
         
         # 4. Locate the file
         # History structure: { prompt_id: { "outputs": { "21": { "audio": [ { "filename": ..., "subfolder": ..., "type": ... } ] } } } }
