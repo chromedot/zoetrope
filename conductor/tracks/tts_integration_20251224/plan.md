@@ -16,7 +16,7 @@ Goal: Implement the core TTS logic and update the data model to store narration.
 ## Phase 2: API and UI Integration [checkpoint: a9315c9]
 Goal: Expose TTS via API and add controls to the Scene Editor.
 
-- [ ] Task: Implement `POST /api/generate_audio` endpoint.
-- [ ] Task: Update Scene Editor UI (`editor.html`) with Narration text area and "Generate Audio" button.
-- [ ] Task: Implement audio playback in the Scene Editor.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: API and UI Integration' (Protocol in workflow.md)
+- [x] Task: Implement `POST /api/generate_audio` endpoint.
+- [x] Task: Update Scene Editor UI (`editor.html`) with Narration text area and "Generate Audio" button.
+- [x] Task: Implement audio playback in the Scene Editor.
+- [~] Task: Conductor - User Manual Verification 'Phase 2: API and UI Integration' (Protocol in workflow.md)

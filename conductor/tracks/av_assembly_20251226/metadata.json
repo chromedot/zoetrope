@@ -1,0 +1,8 @@
+{
+  "id": "av_assembly_20251226",
+  "name": "Audio-Visual Assembly",
+  "description": "Upgrade the VideoStitcher to combine images, TTS narration, and SFX into a final synchronized movie.",
+  "status": "pending",
+  "created_at": "2025-12-26",
+  "owner": "system"
+}

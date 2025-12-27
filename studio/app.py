@@ -15,10 +15,11 @@ from pydantic import BaseModel
 from typing import List
 import urllib.request
 
-# Add scripts folder to path to import story_manager
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "scripts"))
-from story_manager import StoryManager
-from video_utils import VideoStitcher
+# Add project root to path to allow imports from scripts
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from scripts.story_manager import StoryManager
+from scripts.video_utils import VideoStitcher
+from scripts.audio_utils import EdgeTTSGenerator, ComfyAudioGenerator
 import database
 
 app = FastAPI()
@@ -41,28 +42,10 @@ database.init_db()
 STORY_PATH = os.path.join(BASE_DIR, "data", "stories", "geronimo.story")
 manager = StoryManager(STORY_PATH)
 stitcher = VideoStitcher(output_root=OUTPUT_DIR)
+tts_generator = EdgeTTSGenerator()
+sfx_generator = ComfyAudioGenerator()
 
-def perform_stitching(video_id: int, files: list, story_name: str, transition: str, duration: float):
-    """Background task to perform video stitching and update DB."""
-    try:
-        output_path = stitcher.stitch(files, story_name, transition, duration)
-        if output_path:
-            filename = os.path.basename(output_path)
-            database.update_video_record(video_id, filename, status='completed')
-    except Exception as e:
-        print(f"Video stitching background task failed: {e}")
-        database.update_video_record(video_id, None, status='failed')
-
-def enrich_scenes_with_ids(scenes):
-    """Helper to inject DB IDs into scene data for display"""
-    for scene in scenes:
-        if scene.get('image_path'):
-            # image_path is like "geronimo/filename.png"
-            # DB stores filename or we match by basename
-            scene['db_id'] = database.get_image_id_by_filename(scene['image_path'])
-        else:
-            scene['db_id'] = None
-    return scenes
+# ...
 
 class VideoRequest(BaseModel):
     story_name: str
@@ -70,9 +53,48 @@ class VideoRequest(BaseModel):
     transition: str = "none"
     duration: float = 2.0
 
+class AudioRequest(BaseModel):
+    scene_index: int
+    text: str
+    story_name: str
+    voice: str = None
+
+class SFXRequest(BaseModel):
+    text: str
+    story_name: str
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
     return RedirectResponse(url="/gallery")
+
+# ... (rest of endpoints)
+
+@app.post("/api/generate_sfx")
+async def generate_sfx(request: SFXRequest):
+    try:
+        # Output path: output/<story>/audio/sfx_<timestamp>.flac
+        # Note: AudioLDM produces .flac
+        filename = f"sfx_{int(time.time())}.flac"
+        
+        # Sanitize story_name to prevent path traversal
+        safe_story_name = os.path.basename(request.story_name)
+        
+        audio_dir = os.path.join(OUTPUT_DIR, safe_story_name, "audio")
+        os.makedirs(audio_dir, exist_ok=True)
+        output_path = os.path.join(audio_dir, filename)
+        
+        # Generate
+        await sfx_generator.generate(request.text, output_path)
+        
+        relative_path = f"{safe_story_name}/audio/{filename}"
+        
+        return {
+            "status": "success", 
+            "audio_url": f"/images/{relative_path}",
+            "filename": filename
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.get("/gallery", response_class=HTMLResponse)
 async def gallery(request: Request):
@@ -159,7 +181,16 @@ async def check_status(prefix: str, run_id: int = None):
     """Checks if the image file for the given prefix exists."""
     
     folder, file_prefix = os.path.split(prefix)
-    search_path = os.path.join(OUTPUT_DIR, folder, file_prefix + "*.png")
+    
+    # Security Check: Prevent path traversal
+    # Resolve the full path of the folder where we want to search
+    requested_folder_path = os.path.abspath(os.path.join(OUTPUT_DIR, folder))
+    
+    # Ensure the requested folder is within the OUTPUT_DIR
+    if not requested_folder_path.startswith(os.path.abspath(OUTPUT_DIR)):
+        return {"ready": False}
+        
+    search_path = os.path.join(requested_folder_path, file_prefix + "*.png")
     files = glob.glob(search_path)
     
     if files:
@@ -210,6 +241,45 @@ async def get_stats():
 @app.get("/api/dashboard")
 async def get_dashboard():
     return database.get_dashboard_stats()
+
+@app.post("/api/generate_audio")
+async def generate_audio(request: AudioRequest):
+    try:
+        # Get scene data to get description for filename
+        if request.scene_index < 0 or request.scene_index >= len(manager.story_data):
+            return {"status": "error", "message": "Invalid scene index"}
+            
+        scene = manager.story_data[request.scene_index]
+        safe_desc = manager.sanitize_filename(scene['description'])
+        filename = f"scene_{scene['scene']:02d}_{safe_desc}.mp3"
+        
+        # Sanitize story_name to prevent path traversal
+        safe_story_name = os.path.basename(request.story_name)
+        
+        # Output path: output/<story>/audio/<filename>
+        audio_dir = os.path.join(OUTPUT_DIR, safe_story_name, "audio")
+        os.makedirs(audio_dir, exist_ok=True)
+        output_path = os.path.join(audio_dir, filename)
+        
+        # Generate Audio
+        await tts_generator.generate(request.text, output_path, voice=request.voice)
+        
+        # Update Story Data
+        relative_path = f"{safe_story_name}/audio/{filename}"
+        scene['narration_text'] = request.text
+        scene['audio_file'] = relative_path
+        manager.save_story()
+        
+        # Update Database
+        database.update_scene_narration(request.story_name, scene['scene'], request.text, relative_path)
+        
+        return {
+            "status": "success", 
+            "audio_url": f"/images/{relative_path}",
+            "filename": filename
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.post("/api/generate_video")
 async def generate_video(request: VideoRequest, background_tasks: BackgroundTasks):
@@ -319,6 +389,21 @@ async def refine_prompt(prompt: str = Form(...), instructions: str = Form(...)):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+def enrich_scenes_with_ids(scenes):
+    enriched = []
+    for scene in scenes:
+        s = scene.copy()
+        if s.get('image_path'):
+            try:
+                db_id = database.get_image_id_by_filename(s['image_path'])
+                s['db_id'] = db_id
+            except Exception:
+                s['db_id'] = None
+        else:
+            s['db_id'] = None
+        enriched.append(s)
+    return enriched
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8189)

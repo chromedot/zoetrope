@@ -155,6 +155,37 @@
             </div>
         </div>
 
+        <!-- Narration Editor -->
+        <div style="margin-top: 1rem;">
+            <label>Narration Script:</label>
+            <textarea id="narration-text" style="height: 100px;">{{ scene.narration_text or '' }}</textarea>
+            
+            <div class="action-row">
+                <button id="btn-generate-audio" onclick="generateAudio()" style="background-color: var(--secondary-color); color: #000;">Generate Audio</button>
+                <div id="audio-preview-container" style="{% if not scene.audio_file %}display: none;{% endif %} flex: 1;">
+                    <audio id="audio-preview" controls style="width: 100%; height: 35px;">
+                        <source id="audio-source" src="/images/{{ scene.audio_file }}" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+        </div>
+
+        <!-- Soundscape Editor (SFX) -->
+        <div style="margin-top: 1rem; border-top: 1px solid #444; padding-top: 1rem;">
+            <label>Soundscape (SFX) Prompt:</label>
+            <textarea id="sfx-prompt" placeholder="e.g. Footsteps on concrete, epic orchestral music, rain..." style="height: 60px;">{{ scene.sfx_prompt or '' }}</textarea>
+            
+            <div class="action-row">
+                <button id="btn-generate-sfx" onclick="generateSFX()" style="background-color: #e91e63; color: #fff;">Generate SFX</button>
+                <div id="sfx-preview-container" style="display: none; flex: 1;">
+                    <audio id="sfx-preview" controls style="width: 100%; height: 35px;">
+                        <source id="sfx-source" src="" type="audio/flac">
+                    </audio>
+                </div>
+            </div>
+            <div id="sfx-status" style="font-size: 0.8em; color: #aaa; margin-top: 5px;"></div>
+        </div>
+
         <!-- Seed Options -->
         <div class="info-box">
             <div>Seed: <span id="seed-val">{{ scene.seed }}</span></div>
@@ -307,6 +338,98 @@
             document.getElementById('prompt-text').value = data.new_prompt;
         } else {
             alert('AI Error: ' + data.message);
+        }
+    }
+
+    async function generateAudio() {
+        const text = document.getElementById('narration-text').value;
+        if (!text) return alert("Please enter narration text.");
+        
+        const btn = document.getElementById('btn-generate-audio');
+        const originalText = btn.innerText;
+        btn.innerText = "Generating...";
+        btn.disabled = true;
+        
+        try {
+            const response = await fetch('/api/generate_audio', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    scene_index: sceneIndex,
+                    text: text,
+                    story_name: 'geronimo' // Hardcoded for now as per app.py
+                })
+            });
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                const audio = document.getElementById('audio-preview');
+                const source = document.getElementById('audio-source');
+                source.src = data.audio_url + '?t=' + new Date().getTime();
+                audio.load();
+                document.getElementById('audio-preview-container').style.display = 'block';
+                btn.innerText = "Generated!";
+            } else {
+                alert('Error: ' + data.message);
+                btn.innerText = originalText;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred.');
+            btn.innerText = originalText;
+        } finally {
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }, 2000);
+        }
+    }
+    async function generateSFX() {
+        const text = document.getElementById('sfx-prompt').value;
+        if (!text) return alert("Please enter an SFX prompt.");
+        
+        const btn = document.getElementById('btn-generate-sfx');
+        const status = document.getElementById('sfx-status');
+        const originalText = btn.innerText;
+        
+        btn.innerText = "Generating...";
+        btn.disabled = true;
+        status.innerText = "Submitting to AudioLDM (this may take ~20s)...";
+        
+        try {
+            const response = await fetch('/api/generate_sfx', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: text,
+                    story_name: 'geronimo' // Hardcoded for now
+                })
+            });
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                const audio = document.getElementById('sfx-preview');
+                const source = document.getElementById('sfx-source');
+                source.src = data.audio_url + '?t=' + new Date().getTime();
+                audio.load();
+                document.getElementById('sfx-preview-container').style.display = 'block';
+                btn.innerText = "Generated!";
+                status.innerText = "Generation complete.";
+            } else {
+                alert('Error: ' + data.message);
+                btn.innerText = originalText;
+                status.innerText = "Error: " + data.message;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred.');
+            btn.innerText = originalText;
+            status.innerText = "Network error.";
+        } finally {
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }, 2000);
         }
     }
 </script>

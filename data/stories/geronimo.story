@@ -6,7 +6,9 @@
     "status": "draft",
     "seed": 53015322720,
     "image_path": "geronimo/new:2048_scene_01_IntroductionSlideGeronimowasfamousinthelate1800sandwestillsayhisnametoday_00001_.png",
-    "db_id": 38
+    "db_id": 38,
+    "narration_text": "Test narration text",
+    "audio_file": "geronimo/audio/scene_01_IntroductionSlideGeronimowasfamousinthelate1800sandwestillsayhisnametoday.mp3"
   },
   {
     "scene": 2,
@@ -20,11 +22,13 @@
   {
     "scene": 3,
     "description": "Handsome Soldier in Towel",
-    "prompt": "A huge, handsome 19-year-old soldier, extremely muscular and fit, walking back from the showers through a crowded hangar. He walks past other soldiers who are standing and talking in uniform. He is physically imposing. A comic-book style speech bubble appears near him with the text \"GERONIMO\"",
+    "prompt": "A huge, handsome 19-year-old soldier, extremely muscular and fi, with an army tshirt on, walking back from the showers through a crowded hangar. He walks past other soldiers who are standing and talking in uniform. He is physically imposing. A comic-book style speech bubble appears near him with the text \"GERONIMO\"",
     "status": "draft",
-    "seed": 794186318348,
-    "image_path": "geronimo/new:2237_scene_03_HandsomeSoldierinTowel_00001_.png",
-    "db_id": 53
+    "seed": 581489648748,
+    "image_path": "geronimo/new:1325_scene_03_HandsomeSoldierinTowel_00001_.png",
+    "db_id": 53,
+    "narration_text": "First make the sound of 100 boots standing to attention, then silence, then sounds a single man walking on concrete with military boots then the national anthem plays in the backgroun.",
+    "audio_file": "geronimo/audio/scene_03_HandsomeSoldierinTowel.mp3"
   },
   {
     "scene": 4,
