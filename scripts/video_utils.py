@@ -11,17 +11,17 @@ class TransitionStrategy(ABC):
         self.output_root = output_root
 
     @abstractmethod
-    def build_command(self, files, output_path, duration, audio_files=None):
+    def build_command(self, files, output_path, duration, audio_files=None, sfx_files=None):
         pass
 
 class SimpleCutStrategy(TransitionStrategy):
-    def build_command(self, files, output_path, duration, audio_files=None):
+    def build_command(self, files, output_path, duration, audio_files=None, sfx_files=None):
         if not files:
             return None
 
         list_path = output_path + ".txt"
         
-        if audio_files:
+        if audio_files or sfx_files:
             logger.warning("SimpleCutStrategy does not support audio mixing yet. Audio files will be ignored.")
 
         with open(list_path, "w") as f:
@@ -52,7 +52,7 @@ class SimpleCutStrategy(TransitionStrategy):
         return cmd
 
 class CrossFadeStrategy(TransitionStrategy):
-    def build_command(self, files, output_path, duration, audio_files=None):
+    def build_command(self, files, output_path, duration, audio_files=None, sfx_files=None):
         if not files:
             return None
             
@@ -84,7 +84,7 @@ class CrossFadeStrategy(TransitionStrategy):
         
         # Special case: 1 file -> just copy
         if len(files) == 1:
-            return SimpleCutStrategy(self.output_root).build_command(files, output_path, duration, audio_files)
+            return SimpleCutStrategy(self.output_root).build_command(files, output_path, duration, audio_files, sfx_files)
 
         for i in range(len(files) - 1):
             if i == 0:
@@ -120,9 +120,145 @@ class CrossFadeStrategy(TransitionStrategy):
         return cmd
 
 class AIMorphStrategy(TransitionStrategy):
-    def build_command(self, files, output_path, duration, audio_files=None):
+    def build_command(self, files, output_path, duration, audio_files=None, sfx_files=None):
         logger.warning("AI Morph not implemented. Using fallback.")
-        return SimpleCutStrategy(self.output_root).build_command(files, output_path, duration, audio_files)
+        return SimpleCutStrategy(self.output_root).build_command(files, output_path, duration, audio_files, sfx_files)
+
+class AudioMixedStrategy(TransitionStrategy):
+    def _get_audio_duration(self, audio_path):
+        if not audio_path or not os.path.exists(audio_path):
+            return 0.0
+        try:
+            cmd = [
+                "ffprobe", "-v", "error", 
+                "-show_entries", "format=duration", 
+                "-of", "default=noprint_wrappers=1:nokey=1", 
+                audio_path
+            ]
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            return float(result.stdout.strip())
+        except (ValueError, subprocess.CalledProcessError):
+            logger.warning(f"Could not determine duration for {audio_path}")
+            return 0.0
+
+    def build_command(self, files, output_path, duration, audio_files=None, sfx_files=None):
+        if not files:
+            return None
+
+        # Build inputs and filter complex
+        inputs = []
+        filter_complex = ""
+        
+        # We need to track input indices
+        # Structure:
+        # [Input 0: Img 0]
+        # [Input 1: Audio 0 (optional)]
+        # [Input 2: SFX 0 (optional)]
+        # ...
+        
+        input_idx = 0
+        video_segments = []
+        audio_segments = []
+        
+        for i, img_file in enumerate(files):
+            # Determine Scene Duration
+            scene_duration = duration # Default
+            
+            current_audio = None
+            current_sfx = None
+            
+            if audio_files and i < len(audio_files) and audio_files[i]:
+                current_audio = audio_files[i]
+                audio_dur = self._get_audio_duration(current_audio)
+                if audio_dur > 0:
+                    scene_duration = audio_dur
+            
+            if sfx_files and i < len(sfx_files) and sfx_files[i]:
+                current_sfx = sfx_files[i]
+            
+            # --- Inputs ---
+            
+            # 1. Video Input (Image)
+            if not os.path.isabs(img_file):
+                img_path = os.path.abspath(os.path.join(self.output_root, img_file))
+            else:
+                img_path = img_file
+            
+            # Loop image for scene_duration
+            inputs.extend(["-loop", "1", "-t", str(scene_duration), "-i", img_path])
+            v_in_label = f"[{input_idx}:v]"
+            input_idx += 1
+            
+            # 2. Audio Inputs
+            # We need to mix audio and sfx if both exist
+            # Or just use one if one exists
+            # Or silence if neither exists (to keep sync with video in concat?)
+            
+            mixed_audio_label = None
+            
+            if current_audio and current_sfx:
+                # Add both inputs
+                inputs.extend(["-i", current_audio])
+                a_idx = input_idx
+                input_idx += 1
+                
+                inputs.extend(["-i", current_sfx])
+                sfx_idx = input_idx
+                input_idx += 1
+                
+                # Mix them
+                mix_label = f"a_mix_{i}"
+                # Normalize? amix defaults are usually okay
+                filter_complex += f"[{a_idx}:a][{sfx_idx}:a]amix=inputs=2:duration=longest[{mix_label}];"
+                mixed_audio_label = f"[{mix_label}]"
+                
+            elif current_audio:
+                inputs.extend(["-i", current_audio])
+                mixed_audio_label = f"[{input_idx}:a]"
+                input_idx += 1
+                
+            elif current_sfx:
+                inputs.extend(["-i", current_sfx])
+                mixed_audio_label = f"[{input_idx}:a]"
+                input_idx += 1
+            else:
+                # No audio for this scene. 
+                # Concat filter requires audio stream if others have it?
+                # Yes, if we output audio, all segments must have audio.
+                # Generate silence.
+                # We can use anullsrc as input
+                inputs.extend(["-f", "lavfi", "-t", str(scene_duration), "-i", "anullsrc=r=44100:cl=mono"])
+                mixed_audio_label = f"[{input_idx}:a]"
+                input_idx += 1
+
+            video_segments.append(v_in_label)
+            audio_segments.append(mixed_audio_label)
+
+        # --- Concat ---
+        # [v0][a0][v1][a1]...concat=n=N:v=1:a=1[v][a]
+        
+        concat_str = ""
+        for v, a in zip(video_segments, audio_segments):
+            concat_str += f"{v}{a}"
+            
+        filter_complex += f"{concat_str}concat=n={len(files)}:v=1:a=1[v_out][a_out]"
+        
+        cmd = [
+            "ffmpeg", "-y",
+            *inputs,
+            "-filter_complex", filter_complex,
+            "-map", "[v_out]",
+            "-map", "[a_out]",
+            "-c:v", "libx264",
+            "-pix_fmt", "yuv420p",
+            "-r", "30",
+            # Audio codec
+            "-c:a", "aac",
+            "-b:a", "192k",
+            output_path
+        ]
+        
+        return cmd
 
 class VideoStitcher:
     def __init__(self, output_root="/data/comfy/output"):
@@ -135,20 +271,21 @@ class VideoStitcher:
         os.makedirs(video_dir, exist_ok=True)
         return os.path.join(video_dir, f"{story_name}_{timestamp}.mp4")
 
-    def stitch(self, files, story_name, transition="none", duration=2.0, audio_files=None):
+    def stitch(self, files, story_name, transition="none", duration=2.0, audio_files=None, sfx_files=None):
         """Executes the stitching process using the selected strategy."""
         output_path = self.get_output_path(story_name)
         
         strategies = {
             "none": SimpleCutStrategy,
             "crossfade": CrossFadeStrategy,
-            "ai_morph": AIMorphStrategy
+            "ai_morph": AIMorphStrategy,
+            "audio_mixed": AudioMixedStrategy
         }
         
         strategy_class = strategies.get(transition, SimpleCutStrategy)
         strategy = strategy_class(self.output_root)
         
-        cmd = strategy.build_command(files, output_path, duration, audio_files=audio_files)
+        cmd = strategy.build_command(files, output_path, duration, audio_files=audio_files, sfx_files=sfx_files)
         
         if not cmd:
             return None
