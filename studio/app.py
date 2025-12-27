@@ -91,6 +91,7 @@ class SFXRequest(BaseModel):
 
 def perform_stitching(video_id: int, files: List[str], story_name: str, transition: str, duration: float, audio_files: List[str] = None, sfx_files: List[str] = None):
     try:
+        logger.info(f"Starting stitching for video {video_id} with {len(files)} files.")
         output_path = stitcher.stitch(
             files, 
             story_name, 
@@ -105,9 +106,10 @@ def perform_stitching(video_id: int, files: List[str], story_name: str, transiti
 
         # Update DB with success
         database.update_video_record(video_id, os.path.basename(output_path), status="completed")
+        logger.info(f"Stitching completed for video {video_id}: {output_path}")
         
     except Exception as e:
-        print(f"Stitching failed: {e}")
+        logger.error(f"Stitching failed for video {video_id}: {e}")
         database.update_video_record(video_id, None, status="failed")
 
 @app.get("/", response_class=HTMLResponse)
@@ -357,71 +359,93 @@ async def generate_audio(request: AudioRequest):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+import logging
+
+# Configure Logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler("studio.log")
+    ]
+)
+logger = logging.getLogger(__name__)
+
+app = FastAPI()
+
+# ...
+
 @app.post("/api/generate_video")
 async def generate_video(request: VideoRequest, background_tasks: BackgroundTasks):
-    video_id = database.create_video_record(
-        story_name=request.story_name,
-        transition=request.transition,
-        duration=request.duration
-    )
-    
-    audio_files = request.audio_files
-    sfx_files = request.sfx_files
-    
-    # Auto-fetch audio if not provided
-    if (audio_files is None or sfx_files is None) and request.files:
-        try:
-            safe_story_name = os.path.basename(request.story_name)
-            story_path = os.path.join(BASE_DIR, "data", "stories", f"{safe_story_name}.story")
-            
-            if os.path.exists(story_path):
-                # Use a local manager instance to avoid race conditions/state issues with global manager
-                local_manager = StoryManager(story_path)
-                local_manager.refresh_audio_paths()
+    try:
+        logger.info(f"Received video generation request for {request.story_name}")
+        video_id = database.create_video_record(
+            story_name=request.story_name,
+            transition=request.transition,
+            duration=request.duration
+        )
+        
+        audio_files = request.audio_files
+        sfx_files = request.sfx_files
+        
+        # Auto-fetch audio if not provided
+        if (audio_files is None or sfx_files is None) and request.files:
+            try:
+                safe_story_name = os.path.basename(request.story_name)
+                story_path = os.path.join(BASE_DIR, "data", "stories", f"{safe_story_name}.story")
                 
-                # Map image_path -> scene
-                # We need to handle potential path format differences (relative vs absolute vs prefix)
-                # Helper to normalize for matching: get basename
-                def get_key(path):
-                    return os.path.basename(path) if path else ""
-                
-                image_map = { get_key(s.get('image_path')): s for s in local_manager.story_data }
-                
-                new_audio = []
-                new_sfx = []
-                
-                for file_path in request.files:
-                    key = get_key(file_path)
-                    scene = image_map.get(key)
+                if os.path.exists(story_path):
+                    # Use a local manager instance to avoid race conditions/state issues with global manager
+                    local_manager = StoryManager(story_path)
+                    local_manager.refresh_audio_paths()
                     
-                    if scene:
-                        new_audio.append(scene.get('audio_file'))
-                        new_sfx.append(scene.get('sfx_file'))
-                    else:
-                        new_audio.append(None)
-                        new_sfx.append(None)
-                
-                if not audio_files:
-                    audio_files = new_audio
-                if not sfx_files:
-                    sfx_files = new_sfx
+                    # Map image_path -> scene
+                    # We need to handle potential path format differences (relative vs absolute vs prefix)
+                    # Helper to normalize for matching: get basename
+                    def get_key(path):
+                        return os.path.basename(path) if path else ""
                     
-        except Exception as e:
-            print(f"Error fetching audio files: {e}")
-            # Proceed without audio if error
-    
-    background_tasks.add_task(
-        perform_stitching,
-        video_id=video_id,
-        files=request.files,
-        story_name=request.story_name,
-        transition=request.transition,
-        duration=request.duration,
-        audio_files=audio_files,
-        sfx_files=sfx_files
-    )
-    
-    return {"status": "submitted", "video_id": video_id}
+                    image_map = { get_key(s.get('image_path')): s for s in local_manager.story_data }
+                    
+                    new_audio = []
+                    new_sfx = []
+                    
+                    for file_path in request.files:
+                        key = get_key(file_path)
+                        scene = image_map.get(key)
+                        
+                        if scene:
+                            new_audio.append(scene.get('audio_file'))
+                            new_sfx.append(scene.get('sfx_file'))
+                        else:
+                            new_audio.append(None)
+                            new_sfx.append(None)
+                    
+                    if audio_files is None:
+                        audio_files = new_audio
+                    if sfx_files is None:
+                        sfx_files = new_sfx
+                        
+            except Exception as e:
+                logger.error(f"Error fetching audio files: {e}")
+                # Proceed without audio if error
+        
+        background_tasks.add_task(
+            perform_stitching,
+            video_id=video_id,
+            files=request.files,
+            story_name=request.story_name,
+            transition=request.transition,
+            duration=request.duration,
+            audio_files=audio_files,
+            sfx_files=sfx_files
+        )
+        
+        return {"status": "submitted", "video_id": video_id}
+    except Exception as e:
+        logger.error(f"Generate video endpoint failed: {e}", exc_info=True)
+        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
 
 @app.post("/api/delete_story/{story_name}")
 async def delete_story(story_name: str):
