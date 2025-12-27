@@ -16,6 +16,7 @@ start() {
     # 1. Start ComfyUI (Backend)
     if [ -f "$COMFY_PID_FILE" ] && kill -0 $(cat "$COMFY_PID_FILE") 2>/dev/null; then
         echo "ComfyUI is already running (PID $(cat "$COMFY_PID_FILE"))."
+        echo "ComfyUI URL: http://reliant:8188"
     else
         echo "Launching ComfyUI..."
         cd "$COMFY_ROOT"
@@ -28,11 +29,13 @@ start() {
         PID=$!
         echo $PID > "$COMFY_PID_FILE"
         echo "ComfyUI started with PID $PID. Logs: $LOG_DIR/comfyui.log"
+        echo "ComfyUI URL: http://reliant:8188"
     fi
 
     # 2. Start Studio (Frontend)
     if [ -f "$STUDIO_PID_FILE" ] && kill -0 $(cat "$STUDIO_PID_FILE") 2>/dev/null; then
         echo "Studio is already running (PID $(cat "$STUDIO_PID_FILE"))."
+        echo "Studio URL: http://reliant:8189/gallery"
     else
         echo "Launching Story Studio..."
         cd "$COMFY_ROOT/studio"
@@ -46,6 +49,7 @@ start() {
         PID=$!
         echo $PID > "$STUDIO_PID_FILE"
         echo "Studio started with PID $PID. Logs: $LOG_DIR/studio.log"
+        echo "Studio URL: http://reliant:8189/gallery"
     fi
 }
 
@@ -95,6 +99,7 @@ status() {
     # Check ComfyUI
     if [ -f "$COMFY_PID_FILE" ] && kill -0 $(cat "$COMFY_PID_FILE") 2>/dev/null; then
         echo "✅ ComfyUI is RUNNING (PID $(cat "$COMFY_PID_FILE"))"
+        echo "   URL: http://reliant:8188"
         echo "   Logs: tail -f $LOG_DIR/comfyui.log"
     else
         echo "❌ ComfyUI is STOPPED"
@@ -103,6 +108,7 @@ status() {
     # Check Studio
     if [ -f "$STUDIO_PID_FILE" ] && kill -0 $(cat "$STUDIO_PID_FILE") 2>/dev/null; then
         echo "✅ Studio  is RUNNING (PID $(cat "$STUDIO_PID_FILE"))"
+        echo "   URL: http://reliant:8189/gallery"
         echo "   Logs: tail -f $LOG_DIR/studio.log"
     else
         echo "❌ Studio  is STOPPED"
