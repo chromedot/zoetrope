@@ -1,30 +1,33 @@
-# Plan: Security Vulnerability Remediation
+# Plan: Security and Performance Remediation (Audio/SFX)
 
-This plan addresses identified path traversal vulnerabilities in `studio/app.py`.
+## Phase 1: Infrastructure & Dependencies [checkpoint: 6aa63ab]
+Goal: Prepare the environment with required libraries and document tech stack changes.
 
-## Phase 1: Preparation and Environment Check
-- [x] Task: Verify existing test environment and directory structure.
-- [x] Task: Conductor - User Manual Verification 'Phase 1: Preparation' (Protocol in workflow.md)
+- [x] Task: Install `httpx` in the `comfyui-env` virtual environment. 2aa8eb5
+- [x] Task: Update `conductor/tech-stack.md` to include `httpx` as a core dependency. 604515c
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure & Dependencies' (Protocol in workflow.md) 6aa63ab
 
-## Phase 2: Remediate SFX Generation Path Traversal
-- [x] Task: Create failing test for `generate_sfx` with traversal input.
-- [x] Task: Implement input sanitization for `generate_sfx` in `studio/app.py`.
-- [x] Task: Verify fix with tests and check coverage.
-- [x] Task: Conductor - User Manual Verification 'Phase 2: SFX Remediation' (Protocol in workflow.md)
+## Phase 2: Asynchronous Audio Utilities Refactor [checkpoint: 6950ae4]
+Goal: Convert synchronous network calls to non-blocking async calls using `httpx`.
 
-## Phase 3: Remediate TTS Generation Path Traversal
-- [x] Task: Create failing test for `generate_audio` with traversal input.
-- [x] Task: Implement input sanitization for `generate_audio` in `studio/app.py`.
-- [x] Task: Verify fix with tests and check coverage.
-- [x] Task: Conductor - User Manual Verification 'Phase 3: TTS Remediation' (Protocol in workflow.md)
+- [x] Task: Write unit tests for `ComfyAudioGenerator` using `pytest-httpx` to mock ComfyUI responses. fea12d0
+- [x] Task: Refactor `scripts/audio_utils.py` to replace `urllib` with `httpx.AsyncClient`. fea12d0
+- [x] Task: Verify that `ComfyAudioGenerator.generate` is fully non-blocking and handles timeouts/errors gracefully. fea12d0
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Asynchronous Audio Utilities Refactor' (Protocol in workflow.md) 6950ae4
 
-## Phase 4: Remediate Status Check Path Traversal
-- [x] Task: Create failing test for `check_status` with traversal input.
-- [x] Task: Implement path validation for `check_status` in `studio/app.py`.
-- [x] Task: Verify fix with tests and check coverage.
-- [x] Task: Conductor - User Manual Verification 'Phase 4: Status Check Remediation' (Protocol in workflow.md)
+## Phase 3: Security Hardening (Path Traversal & Filenames) [checkpoint: f34789b]
+Goal: Secure the file system against unauthorized access and prevent filename collisions.
 
-## Phase 5: Final Verification and Cleanup
-- [x] Task: Run full test suite and verify >80% coverage for changed modules.
-- [x] Task: Perform manual verification of all generation flows.
-- [x] Task: Conductor - User Manual Verification 'Phase 5: Finalization' (Protocol in workflow.md)
+- [x] Task: Write security tests for path traversal in `/api/check_status`, `/api/generate_audio`, and `/api/generate_sfx`. d048ad7
+- [x] Task: Implement `safe_join` or similar path validation logic in `studio/app.py` to neutralize `../` or absolute path inputs. a8abdf5
+- [x] Task: Write tests for unique filename generation. 8052ca6
+- [x] Task: Refactor filename generation in `app.py` and `audio_utils.py` to use `uuid.uuid4()`. c0fad3a
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Security Hardening (Path Traversal & Filenames)' (Protocol in workflow.md) f34789b
+
+## Phase 4: Dynamic Story Integration [checkpoint: 9293aaf]
+Goal: Remove hardcoded "geronimo" references and allow the Studio to handle multiple stories.
+
+- [x] Task: Write integration tests for API endpoints with varying story names. 504c9c6
+- [x] Task: Update `/api/generate_audio` and `/api/generate_sfx` in `app.py` to use the `story_name` from the request body. 504c9c6
+- [x] Task: Update `studio/templates/editor.html` to dynamically pass the current story name from the UI to the API. 504c9c6
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Dynamic Story Integration' (Protocol in workflow.md) 9293aaf

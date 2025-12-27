@@ -30,9 +30,3 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 *Link: [./conductor/tracks/tts_integration_20251224/](./conductor/tracks/tts_integration_20251224/)*
 
----
-
-## [~] Track: Security and Performance Remediation (Audio/SFX)
-
-*Link: [./conductor/tracks/security_remediation_20251226/](./conductor/tracks/security_remediation_20251226/)*
-
