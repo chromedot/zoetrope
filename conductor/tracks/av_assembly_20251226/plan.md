@@ -11,8 +11,8 @@ Goal: Update the backend to mix audio and sync with video.
 ## Phase 2: Studio API & Data Mapping [checkpoint: pending]
 Goal: Map story data (narration/sfx) to the video request.
 
-- [ ] Task: Update `VideoRequest` pydantic model in `app.py` to include optional audio lists.
-- [ ] Task: Update `api/generate_video` to fetch narration and sfx paths from the database/manager if not provided.
+- [x] Task: Update `VideoRequest` pydantic model in `app.py` to include optional audio lists. [af59eff]
+- [x] Task: Update `api/generate_video` to fetch narration and sfx paths from the database/manager if not provided. [af59eff]
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: API Integration'
 
 ## Phase 3: UI Controls [checkpoint: pending]
