@@ -24,10 +24,10 @@ Goal: Secure the file system against unauthorized access and prevent filename co
 - [x] Task: Refactor filename generation in `app.py` and `audio_utils.py` to use `uuid.uuid4()`. c0fad3a
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Security Hardening (Path Traversal & Filenames)' (Protocol in workflow.md) f34789b
 
-## Phase 4: Dynamic Story Integration
+## Phase 4: Dynamic Story Integration [checkpoint: 9293aaf]
 Goal: Remove hardcoded "geronimo" references and allow the Studio to handle multiple stories.
 
-- [ ] Task: Write integration tests for API endpoints with varying story names.
-- [ ] Task: Update `/api/generate_audio` and `/api/generate_sfx` in `app.py` to use the `story_name` from the request body.
-- [ ] Task: Update `studio/templates/editor.html` to dynamically pass the current story name from the UI to the API.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Dynamic Story Integration' (Protocol in workflow.md)
+- [x] Task: Write integration tests for API endpoints with varying story names. 504c9c6
+- [x] Task: Update `/api/generate_audio` and `/api/generate_sfx` in `app.py` to use the `story_name` from the request body. 504c9c6
+- [x] Task: Update `studio/templates/editor.html` to dynamically pass the current story name from the UI to the API. 504c9c6
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Dynamic Story Integration' (Protocol in workflow.md) 9293aaf
