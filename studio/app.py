@@ -154,7 +154,8 @@ async def editor(request: Request, scene_index: int):
         "request": request, 
         "scene": scene, 
         "index": scene_index,
-        "total": len(manager.story_data)
+        "total": len(manager.story_data),
+        "story_name": manager.story_name
     })
 
 @app.get("/status", response_class=HTMLResponse)

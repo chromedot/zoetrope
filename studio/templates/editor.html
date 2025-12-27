@@ -357,7 +357,7 @@
                 body: JSON.stringify({
                     scene_index: sceneIndex,
                     text: text,
-                    story_name: 'geronimo' // Hardcoded for now as per app.py
+                    story_name: '{{ story_name }}'
                 })
             });
             const data = await response.json();
@@ -402,7 +402,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     text: text,
-                    story_name: 'geronimo' // Hardcoded for now
+                    story_name: '{{ story_name }}'
                 })
             });
             const data = await response.json();
