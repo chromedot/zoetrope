@@ -18,8 +18,8 @@ Goal: Convert synchronous network calls to non-blocking async calls using `httpx
 ## Phase 3: Security Hardening (Path Traversal & Filenames)
 Goal: Secure the file system against unauthorized access and prevent filename collisions.
 
-- [ ] Task: Write security tests for path traversal in `/api/check_status`, `/api/generate_audio`, and `/api/generate_sfx`.
-- [ ] Task: Implement `safe_join` or similar path validation logic in `studio/app.py` to neutralize `../` or absolute path inputs.
+- [x] Task: Write security tests for path traversal in `/api/check_status`, `/api/generate_audio`, and `/api/generate_sfx`. 9b0c42b
+- [x] Task: Implement `safe_join` or similar path validation logic in `studio/app.py` to neutralize `../` or absolute path inputs. d048ad7
 - [ ] Task: Write tests for unique filename generation.
 - [ ] Task: Refactor filename generation in `app.py` and `audio_utils.py` to use `uuid.uuid4()`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Security Hardening (Path Traversal & Filenames)' (Protocol in workflow.md)
