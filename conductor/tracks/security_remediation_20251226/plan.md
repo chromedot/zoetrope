@@ -15,14 +15,14 @@ Goal: Convert synchronous network calls to non-blocking async calls using `httpx
 - [x] Task: Verify that `ComfyAudioGenerator.generate` is fully non-blocking and handles timeouts/errors gracefully. fea12d0
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Asynchronous Audio Utilities Refactor' (Protocol in workflow.md) 6950ae4
 
-## Phase 3: Security Hardening (Path Traversal & Filenames)
+## Phase 3: Security Hardening (Path Traversal & Filenames) [checkpoint: f34789b]
 Goal: Secure the file system against unauthorized access and prevent filename collisions.
 
-- [x] Task: Write security tests for path traversal in `/api/check_status`, `/api/generate_audio`, and `/api/generate_sfx`. 9b0c42b
-- [x] Task: Implement `safe_join` or similar path validation logic in `studio/app.py` to neutralize `../` or absolute path inputs. d048ad7
-- [ ] Task: Write tests for unique filename generation.
-- [ ] Task: Refactor filename generation in `app.py` and `audio_utils.py` to use `uuid.uuid4()`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Security Hardening (Path Traversal & Filenames)' (Protocol in workflow.md)
+- [x] Task: Write security tests for path traversal in `/api/check_status`, `/api/generate_audio`, and `/api/generate_sfx`. d048ad7
+- [x] Task: Implement `safe_join` or similar path validation logic in `studio/app.py` to neutralize `../` or absolute path inputs. a8abdf5
+- [x] Task: Write tests for unique filename generation. 8052ca6
+- [x] Task: Refactor filename generation in `app.py` and `audio_utils.py` to use `uuid.uuid4()`. c0fad3a
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Security Hardening (Path Traversal & Filenames)' (Protocol in workflow.md) f34789b
 
 ## Phase 4: Dynamic Story Integration
 Goal: Remove hardcoded "geronimo" references and allow the Studio to handle multiple stories.
