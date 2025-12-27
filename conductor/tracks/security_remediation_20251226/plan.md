@@ -7,13 +7,13 @@ Goal: Prepare the environment with required libraries and document tech stack ch
 - [x] Task: Update `conductor/tech-stack.md` to include `httpx` as a core dependency. 604515c
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure & Dependencies' (Protocol in workflow.md) 6aa63ab
 
-## Phase 2: Asynchronous Audio Utilities Refactor
+## Phase 2: Asynchronous Audio Utilities Refactor [checkpoint: 6950ae4]
 Goal: Convert synchronous network calls to non-blocking async calls using `httpx`.
 
 - [x] Task: Write unit tests for `ComfyAudioGenerator` using `pytest-httpx` to mock ComfyUI responses. fea12d0
 - [x] Task: Refactor `scripts/audio_utils.py` to replace `urllib` with `httpx.AsyncClient`. fea12d0
 - [x] Task: Verify that `ComfyAudioGenerator.generate` is fully non-blocking and handles timeouts/errors gracefully. fea12d0
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Asynchronous Audio Utilities Refactor' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Asynchronous Audio Utilities Refactor' (Protocol in workflow.md) 6950ae4
 
 ## Phase 3: Security Hardening (Path Traversal & Filenames)
 Goal: Secure the file system against unauthorized access and prevent filename collisions.
