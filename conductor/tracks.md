@@ -22,11 +22,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 
 
----
 
-
-
-## [~] Track: Implement Text-to-Speech (TTS) to generate audio narration for story scenes using Kokoro-82M (or similar).
-
-*Link: [./conductor/tracks/tts_integration_20251224/](./conductor/tracks/tts_integration_20251224/)*
 
