@@ -8,12 +8,12 @@ Goal: Update the backend to mix audio and sync with video.
 - [x] Task: Create a standalone test script `tests-studio/test_av_assembly.py` to verify a 2-scene render. [ce9d9d4]
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Enhanced VideoStitcher' [c0d88e0]
 
-## Phase 2: Studio API & Data Mapping [checkpoint: pending]
+## Phase 2: Studio API & Data Mapping [checkpoint: 66f751a]
 Goal: Map story data (narration/sfx) to the video request.
 
 - [x] Task: Update `VideoRequest` pydantic model in `app.py` to include optional audio lists. [af59eff]
 - [x] Task: Update `api/generate_video` to fetch narration and sfx paths from the database/manager if not provided. [af59eff]
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: API Integration'
+- [x] Task: Conductor - User Manual Verification 'Phase 2: API Integration' [66f751a]
 
 ## Phase 3: UI Controls [checkpoint: pending]
 Goal: Allow users to toggle audio in the final video.
