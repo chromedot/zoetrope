@@ -99,6 +99,10 @@ def perform_stitching(video_id: int, files: List[str], story_name: str, transiti
             audio_files=audio_files,
             sfx_files=sfx_files
         )
+        
+        if not output_path:
+            raise Exception("Stitching returned no output path")
+
         # Update DB with success
         database.update_video_record(video_id, os.path.basename(output_path), status="completed")
         
