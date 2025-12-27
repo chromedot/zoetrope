@@ -114,5 +114,24 @@ class TestAVAPI(unittest.TestCase):
         self.assertEqual(call_kwargs['audio_files'], expected_audio)
         self.assertEqual(call_kwargs['sfx_files'], expected_sfx)
 
+    @patch("studio.app.perform_stitching")
+    def test_generate_video_disables_audio(self, mock_stitch):
+        """Test that passing empty lists for audio_files disables fetching."""
+        payload = {
+            "story_name": self.story_name,
+            "files": [f"{self.story_name}/scene_00_img.png"],
+            "transition": "audio_mixed",
+            "duration": 2.0,
+            "audio_files": [], # Explicitly disabled
+            "sfx_files": []   # Explicitly disabled
+        }
+        
+        response = self.client.post("/api/generate_video", json=payload)
+        self.assertEqual(response.status_code, 200)
+        
+        call_kwargs = mock_stitch.call_args[1]
+        self.assertEqual(call_kwargs['audio_files'], [])
+        self.assertEqual(call_kwargs['sfx_files'], [])
+
 if __name__ == "__main__":
     unittest.main()

@@ -365,7 +365,7 @@ async def generate_video(request: VideoRequest, background_tasks: BackgroundTask
     sfx_files = request.sfx_files
     
     # Auto-fetch audio if not provided
-    if (not audio_files or not sfx_files) and request.files:
+    if (audio_files is None or sfx_files is None) and request.files:
         try:
             safe_story_name = os.path.basename(request.story_name)
             story_path = os.path.join(BASE_DIR, "data", "stories", f"{safe_story_name}.story")

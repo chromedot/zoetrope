@@ -56,8 +56,15 @@
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
     <h2>Story Gallery</h2>
     <div style="display: flex; gap: 1rem; align-items: center;">
+        <label style="display: flex; align-items: center; gap: 5px; font-size: 0.9rem; cursor: pointer;" title="Include narration from scenes">
+            <input type="checkbox" id="include-audio-chk" checked> 🎤 Audio
+        </label>
+        <label style="display: flex; align-items: center; gap: 5px; font-size: 0.9rem; cursor: pointer;" title="Include sound effects from scenes">
+            <input type="checkbox" id="include-sfx-chk" checked> 🔊 SFX
+        </label>
         <select id="transition-select" style="background: var(--card-bg); color: var(--text-color); border: 1px solid #444; padding: 0.5rem; border-radius: 4px; font-weight: bold;">
             <option value="none">🎬 Simple Cuts</option>
+            <option value="audio_mixed" selected>🎵 Audio-Visual (Sync)</option>
             <option value="crossfade">✨ Crossfade</option>
             <option value="ai_morph">🧠 AI Morph (Stub)</option>
         </select>
@@ -111,9 +118,10 @@
         }
 
         const storyName = window.location.pathname.includes('geronimo') ? 'geronimo' : 'geronimo'; // Hardcoded for now as per app.py default
-        // Actually, we should ideally get story name from context, but app.py currently only supports one.
         
         const transition = document.getElementById('transition-select').value;
+        const includeAudio = document.getElementById('include-audio-chk').checked;
+        const includeSFX = document.getElementById('include-sfx-chk').checked;
         
         if (!confirm(`Generate a ${transition} video from ${files.length} scenes?`)) return;
 
@@ -125,7 +133,9 @@
                     story_name: 'geronimo',
                     files: files,
                     transition: transition,
-                    duration: 2.0
+                    duration: 2.0,
+                    audio_files: includeAudio ? null : [],
+                    sfx_files: includeSFX ? null : []
                 })
             });
             const data = await response.json();
