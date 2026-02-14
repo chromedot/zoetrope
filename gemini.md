@@ -14,6 +14,8 @@
 *   **Architecture:** Grace CPU (ARM) + Blackwell GPU (Unified Package).
 *   **Memory:** 128GB LPDDR5X (Unified). No PCIe bottleneck.
 *   **Constraint:** 140W Total Power (CPU/GPU balance).
+*   **The GB10:** is built on the Blackwell architecture, which introduced 5th-generation Tensor Cores. These cores provide native hardware acceleration for the 4-bit floating-point format (NVFP4), which is even more efficient than the FP8.
+
 
 ### 2. Startup Optimization Flags (ComfyUI)
 The `evergreen.sh` script uses these specific flags for the GB10:  These optimizations ensure stable, high-throughput operation on the GB10.
