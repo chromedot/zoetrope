@@ -161,7 +161,7 @@
             <textarea id="narration-text" style="height: 100px;">{{ scene.narration_text or '' }}</textarea>
             
             <div class="action-row">
-                <button id="btn-generate-audio" onclick="generateAudio()" style="background-color: var(--secondary-color); color: #000;">Generate Audio</button>
+                <button id="btn-save-narration" onclick="saveAndGenerateAudio()" style="background-color: var(--secondary-color); color: #000;">Save & Generate Narration</button>
                 <div id="audio-preview-container" style="{% if not scene.audio_file %}display: none;{% endif %} flex: 1;">
                     <audio id="audio-preview" controls style="width: 100%; height: 35px;">
                         <source id="audio-source" src="/images/{{ scene.audio_file }}" type="audio/mpeg">
@@ -173,13 +173,13 @@
         <!-- Soundscape Editor (SFX) -->
         <div style="margin-top: 1rem; border-top: 1px solid #444; padding-top: 1rem;">
             <label>Soundscape (SFX) Prompt:</label>
-            <textarea id="sfx-prompt" placeholder="e.g. Footsteps on concrete, epic orchestral music, rain..." style="height: 60px;">{{ scene.sfx_prompt or '' }}</textarea>
+            <textarea id="sfx-prompt" placeholder="e.g. Footsteps on concrete, epic orchestral music, rain..." style="height: 60px;">{{ scene.sfx_text or '' }}</textarea>
             
             <div class="action-row">
-                <button id="btn-generate-sfx" onclick="generateSFX()" style="background-color: #e91e63; color: #fff;">Generate SFX</button>
-                <div id="sfx-preview-container" style="display: none; flex: 1;">
+                <button id="btn-save-sfx" onclick="saveAndGenerateSFX()" style="background-color: #e91e63; color: #fff;">Save & Generate SFX</button>
+                <div id="sfx-preview-container" style="{% if not scene.sfx_file %}display: none;{% endif %} flex: 1;">
                     <audio id="sfx-preview" controls style="width: 100%; height: 35px;">
-                        <source id="sfx-source" src="" type="audio/flac">
+                        <source id="sfx-source" src="/images/{{ scene.sfx_file }}" type="audio/flac">
                     </audio>
                 </div>
             </div>
@@ -232,6 +232,27 @@
         }, 1500);
     }
 
+    function showEditorStatus(text, isError = false) {
+        const statusBar = document.getElementById('status-bar');
+        const statusText = document.getElementById('status-text');
+        const spinner = statusBar.querySelector('.loading-spinner');
+        const countdown = document.getElementById('countdown');
+        
+        statusBar.style.display = 'block';
+        statusText.innerText = text;
+        spinner.style.display = isError ? 'none' : 'inline-block';
+        countdown.style.display = isError ? 'none' : 'inline-block';
+        
+        if (isError) {
+            statusBar.style.backgroundColor = '#f44336';
+            statusBar.style.color = 'white';
+            setTimeout(() => { statusBar.style.display = 'none'; }, 5000);
+        } else {
+            statusBar.style.backgroundColor = '#333';
+            statusBar.style.color = 'white';
+        }
+    }
+
     async function regenerate() {
         // Save prompt first
         const prompt = document.getElementById('prompt-text').value;
@@ -246,9 +267,12 @@
         // Start countdown
         secondsLeft = 30;
         document.getElementById('countdown').innerText = secondsLeft;
+        document.getElementById('countdown').style.display = 'inline-block';
         document.getElementById('status-bar').style.display = 'block';
+        document.getElementById('status-bar').style.backgroundColor = '#333';
         document.getElementById('status-bar').className = 'status-bar'; // Reset classes
         document.getElementById('status-text').innerText = "Generating...";
+        document.querySelector('.loading-spinner').style.display = 'inline-block';
         document.getElementById('btn-regen').disabled = true;
         
         if (countdownInterval) clearInterval(countdownInterval);
@@ -271,7 +295,7 @@
             // Start polling for the new file prefix
             pollForImage(data.prefix, data.run_id);
         } else {
-            alert('Error submitting generation: ' + data.message);
+            showEditorStatus('Error submitting generation: ' + data.message, true);
             resetStatus();
         }
     }
@@ -322,7 +346,10 @@
         const instructions = document.getElementById('ai-instructions').value;
         const currentPrompt = document.getElementById('prompt-text').value;
         
-        if (!instructions) return alert("Please enter instructions.");
+        if (!instructions) {
+            showEditorStatus("Please enter instructions.", true);
+            return;
+        }
         
         document.getElementById('ai-loading').style.display = 'block';
         
@@ -337,20 +364,27 @@
         if (data.status === 'success') {
             document.getElementById('prompt-text').value = data.new_prompt;
         } else {
-            alert('AI Error: ' + data.message);
+            showEditorStatus('AI Error: ' + data.message, true);
         }
     }
 
-    async function generateAudio() {
+    async function saveAndGenerateAudio() {
         const text = document.getElementById('narration-text').value;
-        if (!text) return alert("Please enter narration text.");
+        // No mandatory check for text - it's optional
         
-        const btn = document.getElementById('btn-generate-audio');
+        const btn = document.getElementById('btn-save-narration');
         const originalText = btn.innerText;
-        btn.innerText = "Generating...";
+        btn.innerText = "Processing...";
         btn.disabled = true;
-        
+
         try {
+            // 1. Save Text
+            await fetch(`/api/update_narration/${sceneIndex}`, {
+                method: 'POST',
+                body: new URLSearchParams({ text: text })
+            });
+
+            // 2. Generate Audio (or clear if empty)
             const response = await fetch('/api/generate_audio', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -363,19 +397,25 @@
             const data = await response.json();
             
             if (data.status === 'success') {
-                const audio = document.getElementById('audio-preview');
-                const source = document.getElementById('audio-source');
-                source.src = data.audio_url + '?t=' + new Date().getTime();
-                audio.load();
-                document.getElementById('audio-preview-container').style.display = 'block';
-                btn.innerText = "Generated!";
+                if (data.audio_url) {
+                    const audio = document.getElementById('audio-preview');
+                    const source = document.getElementById('audio-source');
+                    source.src = data.audio_url + '?t=' + new Date().getTime();
+                    audio.load();
+                    document.getElementById('audio-preview-container').style.display = 'block';
+                    btn.innerText = "Success!";
+                } else {
+                    // Audio cleared
+                    document.getElementById('audio-preview-container').style.display = 'none';
+                    btn.innerText = "Text Saved (No Audio)";
+                }
             } else {
-                alert('Error: ' + data.message);
+                showEditorStatus('Error: ' + data.message, true);
                 btn.innerText = originalText;
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('An error occurred.');
+            showEditorStatus('An error occurred during audio generation.', true);
             btn.innerText = originalText;
         } finally {
             setTimeout(() => {
@@ -384,23 +424,37 @@
             }, 2000);
         }
     }
-    async function generateSFX() {
+
+    async function saveAndGenerateSFX() {
         const text = document.getElementById('sfx-prompt').value;
-        if (!text) return alert("Please enter an SFX prompt.");
+        // No mandatory check for text - it's optional
         
-        const btn = document.getElementById('btn-generate-sfx');
+        const btn = document.getElementById('btn-save-sfx');
         const status = document.getElementById('sfx-status');
         const originalText = btn.innerText;
         
-        btn.innerText = "Generating...";
+        btn.innerText = "Processing...";
         btn.disabled = true;
-        status.innerText = "Submitting to AudioLDM (this may take ~20s)...";
         
+        if (text.strip ? text.strip() : text.trim()) {
+            status.innerText = "Submitting to AudioLDM (this may take ~20s)...";
+        } else {
+            status.innerText = "Clearing soundscape...";
+        }
+
         try {
+            // 1. Save Text
+            await fetch(`/api/update_sfx/${sceneIndex}`, {
+                method: 'POST',
+                body: new URLSearchParams({ text: text })
+            });
+
+            // 2. Generate SFX (or clear if empty)
             const response = await fetch('/api/generate_sfx', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    scene_index: sceneIndex,
                     text: text,
                     story_name: '{{ story_name }}'
                 })
@@ -408,21 +462,28 @@
             const data = await response.json();
             
             if (data.status === 'success') {
-                const audio = document.getElementById('sfx-preview');
-                const source = document.getElementById('sfx-source');
-                source.src = data.audio_url + '?t=' + new Date().getTime();
-                audio.load();
-                document.getElementById('sfx-preview-container').style.display = 'block';
-                btn.innerText = "Generated!";
-                status.innerText = "Generation complete.";
+                if (data.audio_url) {
+                    const audio = document.getElementById('sfx-preview');
+                    const source = document.getElementById('sfx-source');
+                    source.src = data.audio_url + '?t=' + new Date().getTime();
+                    audio.load();
+                    document.getElementById('sfx-preview-container').style.display = 'block';
+                    btn.innerText = "Success!";
+                    status.innerText = "Generation complete.";
+                } else {
+                    // SFX cleared
+                    document.getElementById('sfx-preview-container').style.display = 'none';
+                    btn.innerText = "Text Saved (No SFX)";
+                    status.innerText = "Soundscape cleared.";
+                }
             } else {
-                alert('Error: ' + data.message);
+                showEditorStatus('Error: ' + data.message, true);
                 btn.innerText = originalText;
                 status.innerText = "Error: " + data.message;
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('An error occurred.');
+            showEditorStatus('A network error occurred during SFX generation.', true);
             btn.innerText = originalText;
             status.innerText = "Network error.";
         } finally {

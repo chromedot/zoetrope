@@ -73,6 +73,8 @@
     </div>
 </div>
 
+<div id="video-status" style="display:none; padding: 0.8rem; margin-bottom: 1.5rem; border-radius: 4px; text-align: center; font-weight: bold;"></div>
+
 <div class="gallery-grid">
     {% for scene in scenes %}
     <div class="scene-card" onclick="window.location.href='/scene/{{ loop.index0 }}'">
@@ -111,19 +113,29 @@
     document.getElementById('generate-video-btn').addEventListener('click', async () => {
         const selectedCheckboxes = document.querySelectorAll('.scene-checkbox:checked');
         const files = Array.from(selectedCheckboxes).map(cb => cb.dataset.path);
+        const statusEl = document.getElementById('video-status');
         
+        function showStatus(text, type) {
+            statusEl.innerText = text;
+            statusEl.style.display = 'block';
+            statusEl.style.backgroundColor = type === 'error' ? '#f44336' : '#4caf50';
+            statusEl.style.color = 'white';
+            if (type === 'success') {
+                setTimeout(() => { statusEl.style.display = 'none'; }, 5000);
+            }
+        }
+
         if (files.length === 0) {
-            alert('Please select at least one scene with an image.');
+            showStatus('Please select at least one scene with an image.', 'error');
             return;
         }
 
-        const storyName = window.location.pathname.includes('geronimo') ? 'geronimo' : 'geronimo'; // Hardcoded for now as per app.py default
-        
         const transition = document.getElementById('transition-select').value;
         const includeAudio = document.getElementById('include-audio-chk').checked;
         const includeSFX = document.getElementById('include-sfx-chk').checked;
         
-        if (!confirm(`Generate a ${transition} video from ${files.length} scenes?`)) return;
+        showStatus('Submitting video generation request...', 'info');
+        statusEl.style.backgroundColor = '#2196f3';
 
         try {
             const response = await fetch('/api/generate_video', {
@@ -140,13 +152,13 @@
             });
             const data = await response.json();
             if (data.status === 'submitted') {
-                alert('Video generation started in the background! You can check the status in the Video Gallery soon.');
+                showStatus('Video generation started in the background! Check the Video Gallery soon.', 'success');
             } else {
-                alert('Error starting video generation.');
+                showStatus('Error starting video generation: ' + (data.message || 'Unknown error'), 'error');
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('An error occurred.');
+            showStatus('An error occurred while connecting to the server.', 'error');
         }
     });
 </script>

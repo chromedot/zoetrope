@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 import urllib.request
 
 # Add project root to path to allow imports from scripts
@@ -75,8 +75,8 @@ class VideoRequest(BaseModel):
     files: List[str]
     transition: str = "none"
     duration: float = 2.0
-    audio_files: List[str] = None
-    sfx_files: List[str] = None
+    audio_files: Optional[List[str]] = None
+    sfx_files: Optional[List[str]] = None
 
 class AudioRequest(BaseModel):
     scene_index: int
@@ -121,14 +121,22 @@ async def root():
 @app.post("/api/generate_sfx")
 async def generate_sfx(request: SFXRequest):
     try:
+        if not request.text.strip():
+            # Clear sfx file if text is empty
+            if request.scene_index >= 0 and request.scene_index < len(manager.story_data):
+                scene = manager.story_data[request.scene_index]
+                scene['sfx_file'] = None
+                manager.save_story()
+            return {"status": "success", "audio_url": None}
+
         # Determine filename format
         short_uuid = str(uuid.uuid4())[:8]
         
         if request.scene_index >= 0 and request.scene_index < len(manager.story_data):
             scene = manager.story_data[request.scene_index]
-            filename = f"scene_{scene['scene']:02d}_sfx_{short_uuid}.flac"
+            filename = f"scene_{scene['scene']:02d}_sfx_{short_uuid}.wav"
         else:
-            filename = f"sfx_{short_uuid}.flac"
+            filename = f"sfx_{short_uuid}.wav"
         
         # Use safe_join to ensure we are within OUTPUT_DIR
         try:
@@ -216,6 +224,22 @@ async def update_prompt(scene_index: int, prompt: str = Form(...)):
     scene['prompt'] = prompt
     manager.save_story()
     return {"status": "success", "prompt": prompt}
+
+@app.post("/api/update_narration/{scene_index}")
+async def update_narration(scene_index: int, text: str = Form(None)):
+    if text is None: text = ""
+    scene = manager.story_data[scene_index]
+    scene['narration_text'] = text
+    manager.save_story()
+    return {"status": "success", "text": text}
+
+@app.post("/api/update_sfx/{scene_index}")
+async def update_sfx(scene_index: int, text: str = Form(None)):
+    if text is None: text = ""
+    scene = manager.story_data[scene_index]
+    scene['sfx_text'] = text
+    manager.save_story()
+    return {"status": "success", "text": text}
 
 @app.post("/api/regenerate/{scene_index}")
 async def regenerate(scene_index: int, seed_mode: str = 'random'):
@@ -319,15 +343,23 @@ async def get_dashboard():
 @app.post("/api/generate_audio")
 async def generate_audio(request: AudioRequest):
     try:
-        # Get scene data to get description for filename
-        if request.scene_index < 0 or request.scene_index >= len(manager.story_data):
+        if request.scene_index >= 0 and request.scene_index < len(manager.story_data):
+            scene = manager.story_data[request.scene_index]
+        else:
             return {"status": "error", "message": "Invalid scene index"}
-            
-        scene = manager.story_data[request.scene_index]
-        # Use Short UUID for collision-proof filename
-        # Format: scene_<index>_<short_uuid>.mp3
+
+        if not request.text.strip():
+            # Clear audio file if text is empty
+            scene['audio_file'] = None
+            manager.save_story()
+            return {"status": "success", "audio_url": None}
+
+        # Determine filename
         short_uuid = str(uuid.uuid4())[:8]
-        filename = f"scene_{scene['scene']:02d}_{short_uuid}.mp3"
+        filename = f"scene_{request.scene_index:02d}_{short_uuid}.mp3"
+        
+        # ... (rest of existing logic)
+
         
         try:
             story_dir = safe_join(OUTPUT_DIR, request.story_name)

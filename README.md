@@ -36,7 +36,7 @@ cd /data/comfy
 Generate all scenes in a story:
 ```bash
 cd scripts
-../comfyui-env/bin/python generate_all.py
+../comfyui-env/bin/python generate_all_images.py
 ```
 
 ## Logs

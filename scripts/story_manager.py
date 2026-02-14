@@ -43,27 +43,36 @@ class StoryManager:
         self.refresh_audio_paths()
 
     def refresh_audio_paths(self):
-        """Scans audio directory for existing narration files."""
+        """Scans audio directory for existing narration and SFX files."""
         audio_dir = os.path.join(self.output_dir, "audio")
         if not os.path.exists(audio_dir):
             return
 
         updated = False
         for scene in self.story_data:
+            # 1. Narration
             safe_desc = self.sanitize_filename(scene['description'])
-            # Pattern: scene_01_description.mp3
-            prefix = f"scene_{scene['scene']:02d}_{safe_desc}"
-            search_pattern = os.path.join(audio_dir, prefix + "*")
-            files = glob.glob(search_pattern)
+            narration_prefix = f"scene_{scene['scene']:02d}_{safe_desc}"
+            narration_files = glob.glob(os.path.join(audio_dir, narration_prefix + "*.mp3"))
             
-            if files:
-                # Take the newest one
-                files.sort(key=os.path.getmtime, reverse=True)
-                filename = os.path.basename(files[0])
+            if narration_files:
+                narration_files.sort(key=os.path.getmtime, reverse=True)
+                filename = os.path.basename(narration_files[0])
                 actual_path = f"{self.story_name}/audio/{filename}"
-                
                 if scene.get('audio_file') != actual_path:
                     scene['audio_file'] = actual_path
+                    updated = True
+            
+            # 2. SFX
+            sfx_prefix = f"scene_{scene['scene']:02d}_sfx"
+            sfx_files = glob.glob(os.path.join(audio_dir, sfx_prefix + "*.flac"))
+            
+            if sfx_files:
+                sfx_files.sort(key=os.path.getmtime, reverse=True)
+                filename = os.path.basename(sfx_files[0])
+                actual_path = f"{self.story_name}/audio/{filename}"
+                if scene.get('sfx_file') != actual_path:
+                    scene['sfx_file'] = actual_path
                     updated = True
         
         if updated:

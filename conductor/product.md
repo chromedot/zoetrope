@@ -14,7 +14,7 @@ The fundamental goal of the Story Studio is to provide a simplified web interfac
 - **Narrative Workflow Integration:** Seamlessly connect ComfyUI's generative capabilities with a structured story management system.
 - **Audio Narration (TTS):** Integrated Text-to-Speech engine to generate high-quality audio narration for each scene.
 - **Local Stability and Focus:** Optimized for local performance and reliability, ensuring a smooth experience for individual creators.
-- **Video Stitching and Gallery:** Automatically combine generated scenes into MP4 videos with configurable transitions, managed through a dedicated Video Gallery.
+- **Video Stitching and Gallery:** Automatically combine generated scenes into MP4 videos with synchronized narration and sound effects. Supports scene-by-scene audio-visual synchronization and configurable transitions.
 
 ## User Experience and Scope
 - **Single-User Optimization:** The application is designed as a focused, single-user tool, optimized for local execution and individual creative control.

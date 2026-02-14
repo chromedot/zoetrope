@@ -166,37 +166,51 @@ class ComfyAudioGenerator(AudioGenerator):
         raise TimeoutError("Timed out waiting for ComfyUI generation")
 
     def _get_workflow(self, prompt_text):
-        # Basic AudioLDM workflow
-        # Note: IDs must match what we saw in the json file earlier
-        return {
-            "19": {
-                "inputs": {
-                    "prompt": prompt_text,
-                    "audio_length": 5.0,
-                    "num_steps": 20,
-                    "sample_rate": 16000,
-                    "seed": random.randint(1, 1000000000000)
+        # Load from template
+        workflow_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "workflows", "audioldm2_fp8.json")
+        try:
+            with open(workflow_path, "r") as f:
+                workflow = json.load(f)
+            
+            # Inject parameters
+            workflow["19"]["inputs"]["prompt"] = prompt_text
+            workflow["19"]["inputs"]["seed"] = random.randint(1, 1000000000000)
+            
+            return workflow
+        except Exception as e:
+            logger.error(f"Failed to load workflow template: {e}")
+            # Fallback
+            return {
+                "19": {
+                    "inputs": {
+                        "prompt": prompt_text,
+                        "model_id": "cvssp/audioldm2-large",
+                        "precision": "fp8",
+                        "audio_length": 5.0,
+                        "num_steps": 25,
+                        "sample_rate": 44100,
+                        "seed": random.randint(1, 1000000000000)
+                    },
+                    "class_type": "AudioLDM",
+                    "_meta": {
+                        "title": "AudioLDM"
+                    }
                 },
-                "class_type": "AudioLDM",
-                "_meta": {
-                    "title": "AudioLDM"
-                }
-            },
-            "21": {
-                "inputs": {
-                    "audio": [
-                        "19",
-                        0
-                    ],
-                    "filename_prefix": "sfx",
-                    "output_folder_name": "audio"
-                },
-                "class_type": "SaveAudioLDM",
-                "_meta": {
-                    "title": "SaveAudioLDM"
+                "21": {
+                    "inputs": {
+                        "audio": [
+                            "19",
+                            0
+                        ],
+                        "filename_prefix": "sfx",
+                        "output_folder_name": "audio"
+                    },
+                    "class_type": "SaveAudioLDM",
+                    "_meta": {
+                        "title": "SaveAudioLDM"
+                    }
                 }
             }
-        }
 
 # Helper to run async from sync code if needed
 def generate_audio_sync(text: str, output_path: str, voice: str = None):

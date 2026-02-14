@@ -4,33 +4,38 @@
     "description": "Introduction Slide: Geronimo was famous in the late 1800s and we still say his name today",
     "prompt": "Hyper-realistic sepia photograph, 1880s archive style. The Apache leader Geronimo standing proud in a desert landscape, holding a Winchester rifle. Weathered clothing, intense stoic expression, sharp focus on his eyes. Detailed texture of the rifle wood and metal. Overlayed on the image is the text 'Geronimo was famous in the late 1800s and we still say his name today' in a clean, bold blue font..",
     "status": "draft",
-    "seed": 53015322720,
-    "image_path": "geronimo/new:2048_scene_01_IntroductionSlideGeronimowasfamousinthelate1800sandwestillsayhisnametoday_00001_.png",
+    "seed": 565580694116,
+    "image_path": "geronimo/new:1417_scene_01_IntroductionSlideGeronimowasfamousinthelate1800sandwestillsayhisnametoday_00001_.png",
     "db_id": 38,
-    "narration_text": "bird noises",
-    "audio_file": "/audio/scene_01_IntroductionSlideGeronimowasfamousinthelate1800sandwestillsayhisnametoday.mp3"
+    "narration_text": "Geronimo was an Apache medicine man",
+    "audio_file": "geronimo/audio/scene_01_be798291.mp3",
+    "sfx_text": "sound of eagle screeching overhead"
   },
   {
     "scene": 2,
     "description": "Massive 1930s Cinema: Audience of 60+ watching the 'Geronimo' movie intro",
     "prompt": "A wide-angle shot from the back of a large, ornate 1930s movie theater. A massive silver screen dominates the front, showing the title card of a movie. In huge, bold cinematic letters, the name 'GERONIMO' is displayed across the screen, overlaying a dramatic black and white portrait of the Apache leader. The theater is packed with at least 60 captivated people, including rows of children in the front, all looking up at the screen. A bright, dusty projector beam cuts through the dark, atmospheric room.",
     "status": "draft",
-    "seed": 471138895523,
-    "image_path": "geronimo/new:2206_scene_02_Massive1930sCinemaAudienceof60watchingtheGeronimomovieintro_00001_.png",
+    "seed": 714088072065,
+    "image_path": "geronimo/new:0906_scene_02_Massive1930sCinemaAudienceof60watchingtheGeronimomovieintro_00001_.png",
     "db_id": 54,
-    "narration_text": "people sittings and waiting",
-    "audio_file": "geronimo/audio/scene_02_8c87c70f.mp3"
+    "narration_text": "geronimo was famous",
+    "audio_file": "geronimo/audio/scene_02_18fdc526.mp3",
+    "sfx_text": "sound of kids laughing in the background in a movie theater, then get quiet as the movie starts",
+    "sfx_file": "geronimo/audio/scene_02_sfx_d0d31294.flac"
   },
   {
     "scene": 3,
     "description": "Handsome Soldier in Towel",
-    "prompt": "A huge, handsome 19-year-old soldier, extremely muscular and fi, with an army tshirt on, walking back from the showers through a crowded hangar. He walks past other soldiers who are standing and talking in uniform. He is physically imposing. A comic-book style speech bubble appears near him with the text \"GERONIMO\"",
+    "prompt": "A huge, handsome 19-year-old soldier, extremely muscular and fi, with an army tshirt on, walking back from the showers through a crowded hangar. He walks past other soldiers who are standing and talking in uniform. He is physically imposing. A comic-book style speech bubble appears near him with the text \"GERONIMO!!!!!!\".",
     "status": "draft",
-    "seed": 581489648748,
-    "image_path": "geronimo/new:1325_scene_03_HandsomeSoldierinTowel_00001_.png",
+    "seed": 912764330073,
+    "image_path": "geronimo/new:0913_scene_03_HandsomeSoldierinTowel_00001_.png",
     "db_id": 53,
-    "narration_text": "First make the sound of 100 boots standing to attention, then silence, then sounds a single man walking on concrete with military boots then the national anthem plays in the backgroun.",
-    "audio_file": "geronimo/audio/scene_03_HandsomeSoldierinTowel.mp3"
+    "narration_text": "time to go boys",
+    "audio_file": "geronimo/audio/scene_03_HandsomeSoldierinTowel.mp3",
+    "sfx_text": "First make the sound of 100 boots standing to attention, then silence, then sounds a single man walking on concrete with military boots then the national anthem plays in the backgroun.",
+    "sfx_file": "geronimo/audio/scene_03_sfx_362d407b.flac"
   },
   {
     "scene": 4,
@@ -39,7 +44,11 @@
     "status": "draft",
     "seed": 945689646920,
     "image_path": "geronimo/new:2048_scene_04_StandingintheC47_00001_.png",
-    "db_id": 41
+    "db_id": 41,
+    "sfx_text": "loud airplane noise for a c-47 skytrain as heard from a aparatropper waiting to jump out",
+    "sfx_file": "geronimo/audio/scene_04_sfx_f72251e7.flac",
+    "narration_text": "ready boys, almost time to jump",
+    "audio_file": "geronimo/audio/scene_04_35f33902.mp3"
   },
   {
     "scene": 5,
@@ -48,7 +57,11 @@
     "status": "draft",
     "seed": 478735677936,
     "image_path": "geronimo/new:2048_scene_05_JumpMasterattheDoor_00001_.png",
-    "db_id": 42
+    "db_id": 42,
+    "sfx_text": "loud rush of air from an open airplane door going 500mph",
+    "sfx_file": "geronimo/audio/scene_05_sfx_0e3fb351.flac",
+    "narration_text": "ready",
+    "audio_file": "geronimo/audio/scene_05_d691edab.mp3"
   },
   {
     "scene": 6,
@@ -57,7 +70,11 @@
     "status": "draft",
     "seed": 359258568067,
     "image_path": "geronimo/new:2058_scene_06_TheLeapwithBatmanstyleShout_00001_.png",
-    "db_id": 49
+    "db_id": 49,
+    "sfx_text": "sound of airplane flying away as heard from a man on a parachite right below the airplane after jumping out.",
+    "narration_text": "Geronimo!",
+    "audio_file": null,
+    "sfx_file": "geronimo/audio/scene_06_sfx_769e8c3d.flac"
   },
   {
     "scene": 7,
@@ -66,7 +83,9 @@
     "status": "draft",
     "seed": 620384327415,
     "image_path": "geronimo/new:2048_scene_07_MassJumpwithMultipleShouts_00001_.png",
-    "db_id": 44
+    "db_id": 44,
+    "sfx_text": "sounds on wind as hared by man gliding down on a parachute",
+    "sfx_file": "geronimo/audio/scene_07_sfx_4758fa2d.flac"
   },
   {
     "scene": 8,
@@ -75,7 +94,9 @@
     "status": "draft",
     "seed": 499948737571,
     "image_path": "geronimo/new:2048_scene_08_SafeLandingandTriumphantShout_00001_.png",
-    "db_id": 45
+    "db_id": 45,
+    "sfx_text": "trumpets blowing in triump",
+    "sfx_file": "geronimo/audio/scene_08_sfx_2eb1e116.flac"
   },
   {
     "scene": 9,
@@ -84,7 +105,9 @@
     "status": "draft",
     "seed": 799113306828,
     "image_path": "geronimo/new:2048_scene_09_Debriefing_00001_.png",
-    "db_id": 46
+    "db_id": 46,
+    "sfx_text": "sound of a room of men clapping",
+    "sfx_file": "geronimo/audio/scene_09_sfx_63055c5c.flac"
   },
   {
     "scene": 10,
@@ -93,6 +116,8 @@
     "status": "draft",
     "seed": 615401831130,
     "image_path": "geronimo/new:2048_scene_10_SymbolicFinale_00001_.png",
-    "db_id": 47
+    "db_id": 47,
+    "sfx_text": "birds quielty chirping at sunet",
+    "sfx_file": "geronimo/audio/scene_10_sfx_14ca1c4e.flac"
   }
 ]

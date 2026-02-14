@@ -6,7 +6,7 @@ This plan outlines the steps to implement Sound Effects and Music generation.
 Goal: Enable ComfyUI to generate audio from text.
 
 - [x] Task: Install `comfyui-audioldm` (or recommended audio node) into `ComfyUI/custom_nodes`.
-- [ ] Task: Download necessary models (AudioLDM2) to `ComfyUI/models/checkpoints` or `audio_checkpoints`.
+- [~] Task: Download necessary models (AudioLDM2) to `ComfyUI/models/checkpoints` or `audio_checkpoints`.
 - [ ] Task: Create and test a basic Audio Generation workflow (`audio_workflow.json`).
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: ComfyUI Audio Capability' (Protocol in workflow.md)
 

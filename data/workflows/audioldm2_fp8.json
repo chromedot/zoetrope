@@ -1,0 +1,31 @@
+{
+  "19": {
+    "inputs": {
+      "prompt": "prompt_text_placeholder",
+      "model_id": "cvssp/audioldm2-large",
+      "precision": "fp8",
+      "audio_length": 5.0,
+      "num_steps": 25,
+      "sample_rate": 44100,
+      "seed": 123456
+    },
+    "class_type": "AudioLDM",
+    "_meta": {
+      "title": "AudioLDM"
+    }
+  },
+  "21": {
+    "inputs": {
+      "audio": [
+        "19",
+        0
+      ],
+      "filename_prefix": "sfx",
+      "output_folder_name": "audio/sfx"
+    },
+    "class_type": "SaveAudioLDM",
+    "_meta": {
+      "title": "SaveAudioLDM"
+    }
+  }
+}

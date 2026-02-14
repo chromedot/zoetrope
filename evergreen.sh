@@ -9,6 +9,7 @@ STUDIO_PID_FILE="$PID_DIR/studio.pid"
 
 mkdir -p "$LOG_DIR"
 mkdir -p "$PID_DIR"
+mkdir -p "$COMFY_ROOT/user"
 
 start() {
     echo "Starting Services..."
@@ -24,7 +25,7 @@ start() {
         export CUDA_VISIBLE_DEVICES=0
         
         cd ComfyUI
-        nohup python main.py --listen 0.0.0.0 --highvram --reserve-vram 15 --fp8_e4m3fn-unet --fp8_e4m3fn-text-enc --fast --output-directory "$COMFY_ROOT/output" --user-directory "$COMFY_ROOT" > "$LOG_DIR/comfyui.log" 2>&1 &
+        nohup python main.py --listen 0.0.0.0 --highvram --reserve-vram 15 --fp8_e4m3fn-unet --fp8_e4m3fn-text-enc --fast --output-directory "$COMFY_ROOT/output" --user-directory "$COMFY_ROOT/user" > "$LOG_DIR/comfyui.log" 2>&1 &
         
         PID=$!
         echo $PID > "$COMFY_PID_FILE"

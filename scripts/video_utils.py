@@ -185,26 +185,19 @@ class AudioMixedStrategy(TransitionStrategy):
                     current_sfx = self._resolve_path(sfx_files[i])
                 except FileNotFoundError:
                     logger.warning(f"SFX file not found: {sfx_files[i]}")
-            
+
             # --- Inputs ---
             
             # 1. Video Input (Image)
             img_path = self._resolve_path(img_file)
-            
-            # Loop image for scene_duration
             inputs.extend(["-loop", "1", "-t", str(scene_duration), "-i", img_path])
             v_in_label = f"[{input_idx}:v]"
+            curr_v_idx = input_idx
             input_idx += 1
             
-            # 2. Audio Inputs
-            # We need to mix audio and sfx if both exist
-            # Or just use one if one exists
-            # Or silence if neither exists (to keep sync with video in concat?)
-            
-            mixed_audio_label = None
-            
+            # 2. Audio/SFX Inputs
             if current_audio and current_sfx:
-                # Add both inputs
+                # Add both and mix
                 inputs.extend(["-i", current_audio])
                 a_idx = input_idx
                 input_idx += 1
@@ -213,30 +206,42 @@ class AudioMixedStrategy(TransitionStrategy):
                 sfx_idx = input_idx
                 input_idx += 1
                 
-                # Mix them
                 mix_label = f"a_mix_{i}"
-                # Normalize? amix defaults are usually okay
-                filter_complex += f"[{a_idx}:a][{sfx_idx}:a]amix=inputs=2:duration=longest[{mix_label}];"
+                # Use explicit labels for resampled streams to avoid ambiguity
+                filter_complex += f"[{a_idx}:a]aresample=44100[a_res_{i}];[{sfx_idx}:a]aresample=44100[sfx_res_{i}];"
+                filter_complex += f"[a_res_{i}][sfx_res_{i}]amix=inputs=2:duration=longest[{mix_label}];"
                 mixed_audio_label = f"[{mix_label}]"
                 
             elif current_audio:
                 inputs.extend(["-i", current_audio])
-                mixed_audio_label = f"[{input_idx}:a]"
+                curr_a_idx = input_idx
                 input_idx += 1
+                # Even single stream needs resampling for consistency in concat
+                filter_complex += f"[{curr_a_idx}:a]aresample=44100[a_res_{i}];"
+                mixed_audio_label = f"[a_res_{i}]"
                 
             elif current_sfx:
                 inputs.extend(["-i", current_sfx])
-                mixed_audio_label = f"[{input_idx}:a]"
+                curr_sfx_idx = input_idx
                 input_idx += 1
+                filter_complex += f"[{curr_sfx_idx}:a]aresample=44100[sfx_res_{i}];"
+                mixed_audio_label = f"[sfx_res_{i}]"
+                # Sync duration to SFX if no narration
+                sfx_dur = self._get_audio_duration(current_sfx)
+                if sfx_dur > 0:
+                    scene_duration = sfx_dur
+                    # Update previous image loop duration
+                    # inputs list: [... "-loop", "1", "-t", "DURATION", "-i", "PATH"]
+                    # If we just added "-i", "SFX_PATH", then:
+                    # N-1: SFX_PATH, N-2: -i
+                    # N-3: IMG_PATH, N-4: -i, N-5: DURATION, N-6: -t
+                    inputs[len(inputs)-5] = str(scene_duration)
             else:
-                # No audio for this scene. 
-                # Concat filter requires audio stream if others have it?
-                # Yes, if we output audio, all segments must have audio.
-                # Generate silence.
-                # We can use anullsrc as input
+                # Silence
                 inputs.extend(["-f", "lavfi", "-t", str(scene_duration), "-i", "anullsrc=r=44100:cl=mono"])
-                mixed_audio_label = f"[{input_idx}:a]"
+                curr_a_idx = input_idx
                 input_idx += 1
+                mixed_audio_label = f"[{curr_a_idx}:a]"
 
             video_segments.append(v_in_label)
             audio_segments.append(mixed_audio_label)
