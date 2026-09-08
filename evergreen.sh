@@ -21,11 +21,20 @@ start() {
     else
         echo "Launching ComfyUI..."
         cd "$COMFY_ROOT"
-        source comfyui-env/bin/activate
+        # Call the venv interpreter by absolute path rather than `source
+        # comfyui-env/bin/activate` + bare `python`. The activate script bakes
+        # in an absolute VIRTUAL_ENV at venv-creation time (the original install
+        # location, long since moved), so activate put a directory that no
+        # longer exists on PATH and `python` resolved to nothing -- ComfyUI died
+        # instantly with "nohup: failed to run command 'python'". Same class of
+        # bug Step 1 fixed in project code, except this one lives inside a
+        # generated file we don't own. The path below is derived from
+        # COMFY_ROOT, so it follows the project wherever it lives.
+        PYTHON_BIN="$COMFY_ROOT/comfyui-env/bin/python"
         export CUDA_VISIBLE_DEVICES=0
-        
+
         cd ComfyUI
-        nohup python main.py --listen 0.0.0.0 --highvram --reserve-vram 15 --fp8_e4m3fn-unet --fp8_e4m3fn-text-enc --fast --output-directory "$COMFY_ROOT/output" --user-directory "$COMFY_ROOT/user" > "$LOG_DIR/comfyui.log" 2>&1 &
+        nohup "$PYTHON_BIN" main.py --listen 0.0.0.0 --highvram --reserve-vram 15 --fp8_e4m3fn-unet --fp8_e4m3fn-text-enc --fast --output-directory "$COMFY_ROOT/output" --user-directory "$COMFY_ROOT/user" > "$LOG_DIR/comfyui.log" 2>&1 &
         
         PID=$!
         echo $PID > "$COMFY_PID_FILE"

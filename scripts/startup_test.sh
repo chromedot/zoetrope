@@ -4,12 +4,14 @@
 COMFY_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$COMFY_ROOT"
 
-# Activate the virtual environment
-source comfyui-env/bin/activate
+# Use the venv interpreter by absolute path. `source comfyui-env/bin/activate`
+# bakes in an absolute VIRTUAL_ENV from venv-creation time, so after the project
+# moved it put a nonexistent dir on PATH and bare `python` resolved to nothing.
+PYTHON_BIN="$COMFY_ROOT/comfyui-env/bin/python"
 
 # Set hardware environment variables
 export CUDA_VISIBLE_DEVICES=0
 
 # Launch ComfyUI with Native FP8 Optimizations (Best for Blackwell GB10)
 cd ComfyUI
-python main.py --listen 0.0.0.0 --highvram --reserve-vram 15 --fp8_e4m3fn-unet --fp8_e4m3fn-text-enc --fast --output-directory "$COMFY_ROOT/output" --user-directory "$COMFY_ROOT"
+"$PYTHON_BIN" main.py --listen 0.0.0.0 --highvram --reserve-vram 15 --fp8_e4m3fn-unet --fp8_e4m3fn-text-enc --fast --output-directory "$COMFY_ROOT/output" --user-directory "$COMFY_ROOT"
