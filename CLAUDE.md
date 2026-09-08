@@ -22,10 +22,10 @@ Automated AI storytelling: a `.story` file (scenes + prompts + narration text) g
 | Path | What |
 | :--- | :--- |
 | `studio/` | FastAPI app (`app.py`), `database.py` (raw `sqlite3`, no ORM), `paths.py`, templates, static |
-| `scripts/` | Automation: `story_manager.py`, `run_story.py`, `generate_all_images.py`, `video_utils.py`, `audio_utils.py`, TUI (`review_story.py`), startup shells |
+| `scripts/` | Automation: `story_manager.py` (submits to ComfyUI), `generate_all_images.py` (batch), `video_utils.py` (ffmpeg strategies), `audio_utils.py` (TTS/SFX), `review_story.py` (TUI) |
 | `data/` | `stories/*.story`, `workflows/*.json`, `story_studio.db` |
 | `tests-studio/`, `tests-unit/` | pytest suite — 51 tests, all passing (floor 45% in `pyproject.toml`) |
-| `output/` | Generated media, per story. `ComfyUI/output` is a symlink to this |
+| `output/` | Generated media, per story. ComfyUI writes here because `evergreen.sh` passes `--output-directory`, not via any symlink |
 | `docs/` | All project documentation: `revival-plan.md` (current work plan), `tech-stack.md`, `product.md`, `docs/code_styleguides/`, `gb10-optimization.md`, `comfy-setup.md`, `docs/tracks/` (open work) |
 | `conductor/archive/` | **Frozen** Dec 2025 Gemini-era track specs. Historical exhibit cited by the `v0-gemini-era` tag — don't rewrite it |
 

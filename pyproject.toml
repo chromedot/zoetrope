@@ -44,10 +44,10 @@ testpaths = ["tests-studio", "tests-unit"]
 # scripts/*.py files import each other as siblings the same way).
 # This is pytest's own native option (since 7.0) -- no plugin needed.
 pythonpath = ["studio", "scripts"]
-# Floor is the real measured number (47%) minus 2, per docs/revival-plan.md --
-# a floor that actually holds today, meant to be ratcheted upward as coverage
-# improves, not an aspirational number nobody ever verified.
-addopts = "--cov=studio --cov=scripts --cov-report=term-missing --cov-fail-under=45"
+# Floor is the real measured number minus 2, ratcheted upward as coverage
+# improves -- never an aspirational number nobody verified. Raised 45 -> 52 when
+# deleting seven dead, 0%-covered scripts moved real coverage from 47% to 54%.
+addopts = "--cov=studio --cov=scripts --cov-report=term-missing --cov-fail-under=52"
 
 [tool.coverage.run]
 source = ["studio", "scripts"]

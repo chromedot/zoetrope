@@ -265,8 +265,6 @@ async def regenerate(scene_index: int, seed_mode: str = 'random'):
             filename=estimated_filename
         )
         
-        # Legacy logging (optional, can keep or remove, keeping for safety)
-        database.log_generation(scene['scene'], prefix, scene['prompt'], seed)
         
         return {
             "status": "submitted", 

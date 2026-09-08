@@ -22,18 +22,6 @@ def init_db():
     conn = get_db_connection()
     c = conn.cursor()
     
-    # Legacy table (keeping for safety)
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            scene_id INTEGER,
-            filename TEXT,
-            prompt TEXT,
-            seed INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            status TEXT DEFAULT 'completed'
-        )
-    ''')
 
     # New robust table for Sprint 2
     c.execute('''
@@ -78,16 +66,6 @@ def init_db():
     conn.commit()
     conn.close()
 
-def log_generation(scene_id, filename, prompt, seed):
-    # Legacy function wrapper
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        'INSERT INTO history (scene_id, filename, prompt, seed) VALUES (?, ?, ?, ?)',
-        (scene_id, filename, prompt, seed)
-    )
-    conn.commit()
-    conn.close()
 
 # --- Sprint 2 New Functions ---
 

@@ -6,6 +6,9 @@ __pycache__/
 .DS_Store
 Thumbs.db
 *.db
+# ...except the studio's own database, which is tracked deliberately: it holds
+# the generation history the dashboard reads. `git add` on it needs -f.
+!data/story_studio.db
 *.pid
 *.sock
 *.pid.lock
