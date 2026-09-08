@@ -62,7 +62,14 @@ def init_db():
             completed_at TIMESTAMP
         )
     ''')
-    
+
+    # Which scene an LTX clip job renders -- lets the Status page's jobs
+    # panel label a job "Scene 6" instead of just "Job #38". Unset (NULL)
+    # for stitched full-story videos, which aren't per-scene.
+    try:
+        c.execute('ALTER TABLE generated_videos ADD COLUMN scene_index INTEGER')
+    except: pass
+
     conn.commit()
     conn.close()
 
@@ -188,14 +195,14 @@ def delete_story_generations(story_name):
 
 # --- Video Generation Functions ---
 
-def create_video_record(story_name, transition, duration):
+def create_video_record(story_name, transition, duration, scene_index=None):
     conn = get_db_connection()
     c = conn.cursor()
     c.execute(
-        '''INSERT INTO generated_videos 
-           (story_name, transition, duration, status) 
-           VALUES (?, ?, ?, 'pending')''',
-        (story_name, transition, duration)
+        '''INSERT INTO generated_videos
+           (story_name, transition, duration, scene_index, status)
+           VALUES (?, ?, ?, ?, 'pending')''',
+        (story_name, transition, duration, scene_index)
     )
     new_id = c.lastrowid
     conn.commit()
@@ -219,6 +226,26 @@ def get_all_videos():
     conn = get_db_connection()
     c = conn.cursor()
     c.execute('SELECT * FROM generated_videos WHERE status="completed" ORDER BY id DESC')
+    rows = c.fetchall()
+    conn.close()
+    return rows
+
+def get_video_jobs(limit=20, transition='ltx25_t2v'):
+    """LTX clip generation jobs, newest first -- pending/completed/failed.
+
+    Unlike get_all_videos, this isn't filtered to status='completed': the
+    Status page's jobs panel needs to show a job while it's still running.
+    Scoped to transition='ltx25_t2v' by default, which is what
+    generate_ltx() always passes to create_video_record() -- stitched
+    full-story videos use whatever transition the user picked and aren't
+    "jobs" in this sense.
+    """
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        'SELECT * FROM generated_videos WHERE transition = ? ORDER BY id DESC LIMIT ?',
+        (transition, limit)
+    )
     rows = c.fetchall()
     conn.close()
     return rows

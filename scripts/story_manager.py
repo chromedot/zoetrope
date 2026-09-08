@@ -23,6 +23,23 @@ RESOLUTIONS = {
 }
 DEFAULT_ORIENTATION = "vertical"
 
+# LTX-2.5 text-to-video generation, per output format.
+#
+# Smaller than the still resolutions above because a clip is ~100 frames rather
+# than one: at 27x realtime on the GB10, 576x1024 for 4 seconds takes a couple
+# of minutes, and going up scales that linearly. ffmpeg scales to delivery size
+# at assembly, exactly as it does for stills.
+#
+# LTX constrains both dimensions to multiples of 32; these are, and they keep
+# the same 9:16 and 16:9 ratios as RESOLUTIONS.
+LTX_RESOLUTIONS = {
+    "vertical": (576, 1024),
+    "landscape": (1024, 576),
+}
+# LTX requires (frames % 8 == 1). 97 frames is 4.0s at 24fps.
+LTX_FRAMES = 97
+LTX_FPS = 24
+
 
 class StoryManager:
     def __init__(self, story_file):
@@ -66,6 +83,17 @@ class StoryManager:
 
         with open(self.workflow_template, 'r') as f:
             self.base_workflow = json.load(f)
+
+        # LTX-2.5 video generation. Separate template from the still workflow
+        # because it is a different model stack, and optional: a checkout
+        # without the LTX weights still runs the image pipeline. Absence is
+        # reported when a video is requested, not at startup.
+        self.ltx_workflow_template = os.environ.get(
+            "LTX_WORKFLOW_TEMPLATE",
+            os.path.join(base_dir, 'data', 'workflows', 'ltx25_t2v_api.json'),
+        )
+        self.ltx_width, self.ltx_height = LTX_RESOLUTIONS[self.orientation]
+
         self.refresh_image_paths()
         self.refresh_audio_paths()
 
@@ -174,6 +202,65 @@ class StoryManager:
 
     def sanitize_filename(self, text):
         return re.sub(r'[^a-zA-Z0-9]', '', text.replace(' ', '_'))
+
+    def generate_scene_video(self, scene_index, seed_mode='random', length=None):
+        """
+        Submits an LTX-2.5 text-to-video job for the scene at scene_index.
+
+        Returns (seed, prompt_id, prefix). Submission is non-blocking: a clip
+        takes minutes, so the caller polls ComfyUI's /history for prompt_id
+        rather than waiting here.
+
+        The prefix places the clip under <story>/videos/, which is where the
+        video gallery looks for it.
+        """
+        if not os.path.exists(self.ltx_workflow_template):
+            raise Exception(
+                f"LTX workflow template not found at {self.ltx_workflow_template}. "
+                "Run scripts/download_ltx25.sh to install the LTX-2.5 models."
+            )
+
+        scene_data = self.story_data[scene_index]
+        with open(self.ltx_workflow_template, 'r') as f:
+            workflow = json.load(f)
+
+        frames = length if length is not None else LTX_FRAMES
+        if frames % 8 != 1:
+            raise ValueError(f"LTX requires frames % 8 == 1; got {frames}")
+
+        current_seed = scene_data.get('seed', 0)
+        if seed_mode == 'fixed':
+            seed = current_seed if current_seed else random.randint(1, 1000000000000)
+        elif seed_mode == 'increment':
+            seed = current_seed + 1 if current_seed else random.randint(1, 1000000000000)
+        else:
+            seed = random.randint(1, 1000000000000)
+
+        timestamp = datetime.datetime.now().strftime("%H%M")
+        safe_desc = self.sanitize_filename(scene_data['description'])
+        prefix = f"{self.story_name}/videos/ltx_{timestamp}_scene_{scene_data['scene']:02d}_{safe_desc}"
+
+        # Node ids come from data/workflows/ltx25_t2v_api.json.
+        workflow["5"]["inputs"]["text"] = scene_data['prompt']
+        workflow["8"]["inputs"].update(
+            width=self.ltx_width, height=self.ltx_height, length=frames
+        )
+        workflow["9"]["inputs"]["frames_number"] = frames
+        workflow["12"]["inputs"]["noise_seed"] = seed
+        workflow["20"]["inputs"]["filename_prefix"] = prefix
+
+        data = json.dumps({"prompt": workflow}).encode('utf-8')
+        req = urllib.request.Request(self.comfy_url, data=data)
+        try:
+            response = json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode('utf-8')
+            print(f"ComfyUI HTTP Error {e.code}: {error_body}")
+            raise Exception(f"ComfyUI Error {e.code}: {error_body}")
+        except Exception as e:
+            raise Exception(f"ComfyUI Error: {e}")
+
+        return seed, response.get("prompt_id"), prefix
 
     def generate_scene(self, scene_index, seed_mode='random'):
         """

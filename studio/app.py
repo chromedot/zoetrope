@@ -18,7 +18,7 @@ import urllib.request
 
 # Add project root to path to allow imports from scripts
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from scripts.story_manager import StoryManager
+from scripts.story_manager import StoryManager, LTX_FRAMES, LTX_FPS
 from scripts.video_utils import VideoStitcher
 from scripts.audio_utils import EdgeTTSGenerator, ComfyAudioGenerator
 import database
@@ -40,6 +40,12 @@ templates = Jinja2Templates(directory=os.path.join(os.path.dirname(os.path.abspa
 database.init_db()
 
 # Initialize Manager (default to geronimo.story)
+# ComfyUI's history endpoint, derived from the same base as the manager's
+# submit URL so a single COMFY_URL override moves both.
+COMFY_HISTORY_URL = os.environ.get(
+    "COMFY_URL", "http://127.0.0.1:8188/prompt"
+).rsplit("/", 1)[0] + "/history"
+
 STORY_PATH = os.path.join(BASE_DIR, "data", "stories", "geronimo.story")
 manager = StoryManager(STORY_PATH)
 stitcher = VideoStitcher(output_root=OUTPUT_DIR)
@@ -119,6 +125,89 @@ def perform_stitching(video_id: int, files: List[str], story_name: str, transiti
     except Exception as e:
         logger.error(f"Stitching failed for video {video_id}: {e}")
         database.update_video_record(video_id, None, status="failed")
+
+def await_ltx_clip(video_id: int, prompt_id: str, story_name: str, timeout: int = 1800):
+    """Waits for an LTX-2.5 clip to finish rendering, then completes its record.
+
+    ComfyUI writes the file itself; this only watches /history and records the
+    filename the video gallery needs. Polls because ComfyUI reports completion
+    over a websocket this app does not hold open.
+    """
+    deadline = time.time() + timeout
+    try:
+        while time.time() < deadline:
+            with urllib.request.urlopen(
+                f"{COMFY_HISTORY_URL}/{prompt_id}", timeout=10
+            ) as response:
+                history = json.loads(response.read().decode("utf-8"))
+
+            entry = history.get(prompt_id)
+            if entry is None:
+                time.sleep(5)
+                continue
+
+            status = entry.get("status", {})
+            if status.get("status_str") != "success":
+                raise Exception(f"ComfyUI reported {status.get('status_str')}")
+
+            for output in entry.get("outputs", {}).values():
+                for items in output.values():
+                    for item in items if isinstance(items, list) else [items]:
+                        if isinstance(item, dict) and item.get("filename"):
+                            database.update_video_record(
+                                video_id, item["filename"], status="completed"
+                            )
+                            logger.info(
+                                f"LTX clip {video_id} complete: {item['filename']}"
+                            )
+                            return
+            raise Exception("ComfyUI succeeded but produced no output file")
+
+        raise Exception(f"timed out after {timeout}s")
+
+    except Exception as e:
+        logger.error(f"LTX generation failed for video {video_id}: {e}")
+        database.update_video_record(video_id, None, status="failed")
+
+
+@app.post("/api/generate_ltx/{scene_index}")
+async def generate_ltx(
+    scene_index: int, background_tasks: BackgroundTasks, seed_mode: str = "random"
+):
+    """Generates one scene as an LTX-2.5 video clip, with synchronized audio.
+
+    Unlike /api/regenerate this produces a clip rather than a still, and the
+    result lands in the video gallery rather than the story gallery.
+    """
+    try:
+        seed, prompt_id, prefix = manager.generate_scene_video(
+            scene_index, seed_mode=seed_mode
+        )
+        video_id = database.create_video_record(
+            story_name=manager.story_name,
+            transition="ltx25_t2v",
+            duration=LTX_FRAMES / LTX_FPS,
+            scene_index=scene_index,
+        )
+        background_tasks.add_task(
+            await_ltx_clip,
+            video_id=video_id,
+            prompt_id=prompt_id,
+            story_name=manager.story_name,
+        )
+        return {
+            "status": "submitted",
+            "seed": seed,
+            "prompt_id": prompt_id,
+            "video_id": video_id,
+            "prefix": prefix,
+        }
+    except Exception as e:
+        logger.error(f"LTX generation request failed: {e}")
+        return JSONResponse(
+            status_code=500, content={"status": "error", "message": str(e)}
+        )
+
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
@@ -217,7 +306,8 @@ async def editor(request: Request, scene_index: int):
 
 @app.get("/status", response_class=HTMLResponse)
 async def status_page(request: Request):
-    return templates.TemplateResponse("status.html", {"request": request})
+    stories = database.get_dashboard_stats()
+    return templates.TemplateResponse("status.html", {"request": request, "stories": stories})
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard_page(request: Request):
@@ -490,6 +580,49 @@ async def get_queue():
             return {"status": "success", "running": running, "pending": pending}
     except Exception as e:
         return {"status": "error", "running": 0, "pending": 0, "message": str(e)}
+
+# Estimate for the Status page's jobs panel, grounded in real
+# "Prompt executed in ..." timings from logs/comfyui.log (96s-275s for an
+# LTX clip). Not a hard limit like await_ltx_clip's 1800s timeout -- just
+# the denominator for a rough percent-complete while a job is still running.
+TYPICAL_LTX_SECONDS = 180.0
+
+def _job_percent(status: str, created_at: str) -> int:
+    if status == "completed":
+        return 100
+    if status == "failed":
+        return 0
+    # created_at is SQLite's CURRENT_TIMESTAMP, which is always UTC --
+    # compare against utcnow(), not now(). (generated_videos.completed_at is
+    # written separately using local time, which is a real, pre-existing
+    # mismatch between those two columns; sidestepped here by never touching
+    # completed_at for a still-running job.)
+    created = datetime.datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
+    elapsed = (datetime.datetime.utcnow() - created).total_seconds()
+    return max(0, min(99, int(elapsed / TYPICAL_LTX_SECONDS * 100)))
+
+@app.get("/api/jobs")
+async def get_jobs(limit: int = 20):
+    """Recent LTX video-clip jobs for the Status page's jobs panel."""
+    rows = database.get_video_jobs(limit=limit)
+    jobs = []
+    for row in rows:
+        status = row["status"]  # 'pending' | 'completed' | 'failed' in the DB
+        file_url = None
+        if status == "completed" and row["filename"]:
+            file_url = f"/images/{row['story_name']}/videos/{row['filename']}"
+        jobs.append({
+            "id": row["id"],
+            "story_name": row["story_name"],
+            "scene_index": row["scene_index"],
+            # "pending" here means "submitted, not yet finished" -- there's
+            # no separate queued-vs-executing state, so it reads as "running".
+            "status": "running" if status == "pending" else status,
+            "percent": _job_percent(status, row["created_at"]),
+            "created_at": row["created_at"],
+            "file_url": file_url,
+        })
+    return {"jobs": jobs}
 
 @app.get("/api/system_stats")
 async def get_system_stats():
