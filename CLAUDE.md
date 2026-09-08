@@ -24,10 +24,10 @@ Automated AI storytelling: a `.story` file (scenes + prompts + narration text) g
 | `studio/` | FastAPI app (`app.py`), `database.py` (raw `sqlite3`, no ORM), `paths.py`, templates, static |
 | `scripts/` | Automation: `story_manager.py`, `run_story.py`, `generate_all_images.py`, `video_utils.py`, `audio_utils.py`, TUI (`review_story.py`), startup shells |
 | `data/` | `stories/*.story`, `workflows/*.json`, `story_studio.db` |
-| `tests-studio/`, `tests-unit/` | pytest suite — 46 tests, all passing, 47% coverage (floor 45% in `pyproject.toml`) |
+| `tests-studio/`, `tests-unit/` | pytest suite — 51 tests, all passing (floor 45% in `pyproject.toml`) |
 | `output/` | Generated media, per story. `ComfyUI/output` is a symlink to this |
-| `docs/` | `revival-plan.md` (the current work plan), `gb10-optimization.md`, `comfy-setup.md` |
-| `conductor/` | Gemini-era planning docs. Historical — `conductor/archive/` is frozen, don't rewrite it |
+| `docs/` | All project documentation: `revival-plan.md` (current work plan), `tech-stack.md`, `product.md`, `workflow.md`, `docs/code_styleguides/`, `gb10-optimization.md`, `comfy-setup.md`, `docs/tracks/` (open work) |
+| `conductor/archive/` | **Frozen** Dec 2025 Gemini-era track specs. Historical exhibit cited by the `v0-gemini-era` tag — don't rewrite it |
 
 ## Running it
 
@@ -49,4 +49,4 @@ NVIDIA GB10 (Grace-Blackwell), 128GB unified memory, ~140W shared TDP. The Comfy
 
 ## Style
 
-`conductor/code_styleguides/python.md` and `conductor/code_styleguides/general.md`. Match surrounding code over the guide where they disagree.
+`docs/code_styleguides/python.md` and `docs/code_styleguides/general.md`. Match surrounding code over the guide where they disagree.

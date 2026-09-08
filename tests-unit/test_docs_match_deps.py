@@ -7,7 +7,7 @@ Three checks, each of which corresponds to a real problem found in this repo:
 
 (b) Every dependency declared in pyproject.toml is actually imported somewhere.
     This is the one that catches documentation drift in the other direction --
-    conductor/tech-stack.md claimed "SQLAlchemy/Alembic: Used for Object-
+    docs/tech-stack.md claimed "SQLAlchemy/Alembic: Used for Object-
     Relational Mapping (ORM) and database migrations" for months, while the
     data layer was raw sqlite3 and neither package was imported anywhere.
 
@@ -153,12 +153,12 @@ def test_declared_dependencies_are_used():
 
 
 def test_tech_stack_doc_does_not_claim_unused_libraries():
-    """(b, prose edition) conductor/tech-stack.md shouldn't claim unused tech.
+    """(b, prose edition) docs/tech-stack.md shouldn't claim unused tech.
 
     The specific regression: it described SQLAlchemy/Alembic as the ORM and
     migration layer while the code used raw sqlite3 and imported neither.
     """
-    path = os.path.join(REPO_ROOT, "conductor", "tech-stack.md")
+    path = os.path.join(REPO_ROOT, "docs", "tech-stack.md")
     if not os.path.exists(path):
         return
     imported = {name.lower() for name in _third_party_imports()}
@@ -179,7 +179,7 @@ def test_tech_stack_doc_does_not_claim_unused_libraries():
         if re.search(rf"\b{re.escape(lib)}\b", claimed_text) and lib not in imported
     }
     assert not claimed_but_unused, (
-        "conductor/tech-stack.md names libraries that nothing imports: "
+        "docs/tech-stack.md names libraries that nothing imports: "
         f"{sorted(claimed_but_unused)}. Either adopt them or stop claiming them."
     )
 
