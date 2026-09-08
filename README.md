@@ -85,7 +85,6 @@ Tests passing does *not* mean the pipeline works — nothing in the suite starts
 | `docs/` | Setup, model downloads, GB10 tuning, the current work plan |
 | `.claude/` | Pre-commit gates — see [Contributing](CONTRIBUTING.md) |
 | `output/` | Everything generated, per story. Not in version control |
-| `conductor/archive/` | Frozen December 2025 specs. Historical record; don't edit |
 
 `ComfyUI/`, `comfyui-env/`, `models/` and `output/` are all gitignored — roughly 109 GB of downloadable or regenerable data against about 1 MB of source.
 

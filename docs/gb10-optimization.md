@@ -80,3 +80,86 @@ sudo cpupower frequency-set -u 1.5GHz
 
 *   **Docker (if containerising):** use `nvcr.io/nvidia/pytorch:24.10-py3` or newer for GB10 on ARM64. Older images predate Blackwell support.
 *   **`--reserve-vram 15` is safe and effective for Flux here.** Because memory is unified, that 15GB is reserved for the Grace CPU and the OS out of the same 128GB pool the GPU draws from — it prevents system-level OOM rather than capping model size the way a discrete-GPU VRAM reservation would.
+
+---
+
+*Sections 6-9 were salvaged in September 2026 from a separate text-to-video lab that
+ran on this same GB10 through December 2025. That lab drove the hardware harder than
+Zoetrope does — longer sustained generations, video models rather than single frames —
+so it hit limits this project has not yet reached. Reproduced here because the findings
+are about the machine, and apply to anyone running this software on this hardware.*
+
+## 6. Why you cannot read VRAM on this machine
+
+`nvidia-smi --query-gpu=memory.used,memory.free` returns `[N/A]` on the GB10, and
+`nvtop`'s header gauge shows `MEM[ N/A]`. **The driver is not broken and there is
+nothing to fix.** The GB10 is an SoC: the Blackwell GPU reaches memory over
+NVLink-C2C rather than PCIe, and there is no separate VRAM pool to report — VRAM
+*is* the 128 GB of system RAM.
+
+Consequences worth knowing before you go looking for a problem:
+
+*   `nvtop` also misreports the link as `PCIe GEN 1@ 1x`. Also a placeholder, also
+    not real.
+*   `nvtop`'s **process list still shows true per-process memory** even when the
+    header gauge does not. That is the reliable read.
+*   So does `pynvml` via `nvmlDeviceGetMemoryInfo` on the process handle.
+
+Filed upstream and resolved.
+
+## 7. FP8 precision — pick E4M3 deliberately
+
+The `--fp8_e4m3fn-unet` / `--fp8_e4m3fn-text-enc` flags in §2 name **E4M3**
+specifically, and the choice matters:
+
+*   **E4M3** — more mantissa, less exponent range. Correct for inference.
+*   **E5M2** — more range, less precision. Intended for gradients in training.
+*   **FP16** — carries a real NaN risk on these models at this scale.
+*   **FP32** — pure memory waste on a unified-memory system where you are already
+    sharing the pool with the OS.
+
+Note the live SFX bug is a precision-mixing failure of exactly this kind:
+`mat1 and mat2 must have the same dtype, but got Half and Float8_e4m3fn`. Loading
+weights as fp8 does not make the surrounding compute fp8.
+
+## 8. Reaching the FP4 tensor cores
+
+Blackwell's 5th-generation tensor cores accelerate **NVFP4** natively — more
+efficient than the FP8 path §2 currently uses. **Stock PyTorch does not target them
+by default.**
+
+*   **SageAttention 3**, branch `sageattention3_blackwell`, dynamically quantizes
+    attention Q,K to FP4 at runtime. This is the documented route; the generic
+    SageAttention package is not the same thing.
+*   Graph compilation: `torch.compile(mode="max-autotune")` targeting `sm_100`, or
+    TensorRT-LLM.
+
+Not currently used by Zoetrope. Worth knowing the ceiling exists — the LTX-2.3
+weights that came off the same machine are NVFP4, so the hardware path is real.
+
+## 9. Sustained I/O has a thermal ceiling
+
+The Southbridge / NVMe controller throttles above roughly **100 W of sustained
+write**. A generation loop that writes every frame as it is produced will hit this
+during long runs.
+
+The lab's fix was a **compute-then-write** cadence: the inference loop writes frames
+into an in-memory `collections.deque`, and a separate low-priority thread — pinned
+to the Cortex-A725 efficiency cores — flushes to disk only after the heavy GPU phase
+finishes.
+
+Zoetrope has not hit this: it writes one PNG per scene with ~37 s of compute between
+writes. It becomes relevant if batch generation or video output ever lands.
+
+### ARMv9 CPU (SVE2)
+
+The Grace CPU is an SVE2 part, and generic ARM builds leave real throughput unused.
+If you ever compile FFmpeg or OpenCV from source for this machine:
+
+```
+-mcpu=neoverse-v2 -march=armv9-a+sve2 -O3 -ftree-vectorize
+```
+
+Zoetrope uses distro FFmpeg and assembles a ten-scene video in about six seconds, so
+this is not currently worth doing. It is the lever if assembly ever becomes the
+bottleneck.

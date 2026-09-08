@@ -208,8 +208,10 @@ def _docs_files():
 _DIR_TOKEN = re.compile(r"^[A-Za-z0-9._/-]+/$")
 
 # Docs that describe intended/future state by design, where referencing a file
-# that doesn't exist yet is the point, not a mistake.
-FORWARD_LOOKING_DOCS = {"docs/revival-plan.md"}
+# that doesn't exist yet is the point, not a mistake. Empty since the planning
+# docs moved out of this repo; kept because the exemption is still the right
+# shape if a forward-looking doc is ever added back.
+FORWARD_LOOKING_DOCS: set[str] = set()
 
 
 def test_backticked_doc_directories_exist():

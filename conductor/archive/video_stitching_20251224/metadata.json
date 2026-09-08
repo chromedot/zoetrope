@@ -1,8 +1,0 @@
-{
-  "track_id": "video_stitching_20251224",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2025-12-24T12:00:00Z",
-  "updated_at": "2025-12-24T12:00:00Z",
-  "description": "Implement a feature to stitch together multiple generated images/videos from a story into a single MP4 video file with configurable transitions and a dedicated gallery."
-}

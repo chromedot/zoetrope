@@ -6,9 +6,12 @@ __pycache__/
 .DS_Store
 Thumbs.db
 *.db
-# ...except the studio's own database, which is tracked deliberately: it holds
-# the generation history the dashboard reads. `git add` on it needs -f.
-!data/story_studio.db
+# The studio's database is deliberately NOT tracked. It holds generation
+# history and prompts -- this operator's content, not the software -- and this
+# repo is public. It is also a binary blob, so two machines editing it produce
+# an unmergeable conflict. It lives at data/story_studio.db and is created on
+# first run by init_db().
+
 *.pid
 *.sock
 *.pid.lock

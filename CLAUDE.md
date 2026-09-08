@@ -24,10 +24,9 @@ Automated AI storytelling: a `.story` file (scenes + prompts + narration text) g
 | `studio/` | FastAPI app (`app.py`), `database.py` (raw `sqlite3`, no ORM), `paths.py`, templates, static |
 | `scripts/` | Automation: `story_manager.py` (submits to ComfyUI), `generate_all_images.py` (batch), `video_utils.py` (ffmpeg strategies), `audio_utils.py` (TTS/SFX), `review_story.py` (TUI) |
 | `data/` | `stories/*.story`, `workflows/*.json`, `story_studio.db` |
-| `tests-studio/`, `tests-unit/` | pytest suite — 51 tests, all passing (floor 45% in `pyproject.toml`) |
+| `tests-studio/`, `tests-unit/` | pytest suite — 56 tests, all passing (floor 52% in `pyproject.toml`, real coverage 54%) |
 | `output/` | Generated media, per story. ComfyUI writes here because `evergreen.sh` passes `--output-directory`, not via any symlink |
-| `docs/` | All project documentation: `revival-plan.md` (current work plan), `tech-stack.md`, `product.md`, `docs/code_styleguides/`, `gb10-optimization.md`, `comfy-setup.md`, `docs/tracks/` (open work) |
-| `conductor/archive/` | **Frozen** Dec 2025 Gemini-era track specs. Historical exhibit cited by the `v0-gemini-era` tag — don't rewrite it |
+| `docs/` | Setup and reference for anyone running this: `models.md` (the downloads), `gb10-optimization.md` (hardware tuning), `tech-stack.md`, `product.md`, `comfy-setup.md`, `docs/code_styleguides/` |
 
 ## Running it
 
@@ -49,7 +48,7 @@ NVIDIA GB10 (Grace-Blackwell), 128GB unified memory, ~140W shared TDP. The Comfy
 
 ## Definition of done
 
-1. `./comfyui-env/bin/python -m pytest` passes (51 tests; the pre-commit gate runs them too).
+1. `./comfyui-env/bin/python -m pytest` passes (56 tests; the pre-commit gate runs them too).
 2. The gates pass. If one fires, fix the finding — don't reach for a bypass.
 3. **If you changed anything in the generation pipeline, actually run it.** Not the tests — the pipeline. Start the services, generate a scene, assemble a video, look at the output.
 

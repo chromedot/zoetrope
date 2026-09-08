@@ -1,6 +1,9 @@
 # Initial Concept
 Zoetrope automates AI storytelling using ComfyUI for image generation and a custom Web Studio for management.
 
+> This file describes what Zoetrope **is** — the software, and who it is for.
+> How any particular operator plans to *use* it is deliberately not in this repo.
+
 # Product Guide - Zoetrope
 
 ## Target Users

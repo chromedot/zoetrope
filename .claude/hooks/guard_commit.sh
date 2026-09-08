@@ -50,8 +50,7 @@
 #    deliberately adversarial input by design -- a regex reads text, not
 #    semantics. This is exactly why Step 5's GitHub Actions gate (runs
 #    server-side, outside Claude's control entirely) is the real
-#    non-bypassable backstop, not this script. See
-#    docs/revival-plan.md.
+#    non-bypassable backstop, not this script.
 set -uo pipefail
 
 HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

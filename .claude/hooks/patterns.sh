@@ -20,7 +20,7 @@
 # deliberate bypass (quote-splitting a literal like `comm"it"` to dodge
 # a substring match) is a known, accepted gap. That's exactly what
 # Step 5's GitHub Actions gate (server-side, outside Claude's control
-# entirely) exists to close -- see docs/revival-plan.md.
+# entirely) exists to close.
 
 # Only code files are in scope. Markdown/docs are prose, not leaked
 # reasoning or load-bearing paths — README.md and docs/comfy-setup.md
