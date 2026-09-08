@@ -9,7 +9,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## [~] Track: Enforced Review Gates & Revival
 *Link: [./conductor/tracks/revival_20260907/](./conductor/tracks/revival_20260907/)*
-Repair the project into a working, portable state (fixed — Steps 0-1) and replace on-demand review with deterministic, enforced gates (in progress — Step 2) so hardcoded paths and leaked model reasoning can't quietly recur.
+Repair the project into a working, portable state (fixed — Steps 0-1) and replace on-demand review with deterministic, enforced gates (done — Step 2; Steps 3-6 remain, 4-6 optional) so hardcoded paths and leaked model reasoning can't quietly recur.
 
 
 
