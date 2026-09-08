@@ -7,9 +7,10 @@ This file tracks all major tracks for the project. Each track has its own detail
 ## [~] Track: High-Fidelity SFX for GB10
 *Link: [./conductor/tracks/sfx_gb10_20251231/](./conductor/tracks/sfx_gb10_20251231/)*
 
-## [~] Track: Enforced Review Gates & Revival
-*Link: [./conductor/tracks/revival_20260907/](./conductor/tracks/revival_20260907/)*
-Repair the project into a working, portable state (fixed — Steps 0-1) and replace on-demand review with deterministic, enforced gates (done — Step 2; Steps 3-6 remain, 4-6 optional) so hardcoded paths and leaked model reasoning can't quietly recur.
+Note: the "Enforced Review Gates & Revival" plan (path portability, repo
+hygiene, deterministic pre-commit gates) is tracked separately at
+[../docs/revival-plan.md](../docs/revival-plan.md), not as a track here —
+it's plain documentation, not a Conductor-tracked feature.
 
 
 

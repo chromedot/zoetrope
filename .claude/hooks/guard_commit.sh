@@ -51,7 +51,7 @@
 #    semantics. This is exactly why Step 5's GitHub Actions gate (runs
 #    server-side, outside Claude's control entirely) is the real
 #    non-bypassable backstop, not this script. See
-#    conductor/tracks/revival_20260907/spec.md.
+#    docs/revival-plan.md.
 set -uo pipefail
 
 HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

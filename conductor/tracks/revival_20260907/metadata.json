@@ -1,8 +1,0 @@
-{
-  "track_id": "revival_20260907",
-  "type": "chore",
-  "status": "in_progress",
-  "created_at": "2026-09-07T20:00:00Z",
-  "updated_at": "2026-09-08T03:15:52Z",
-  "description": "Repair the project into a working, portable state and replace on-demand review with deterministic, enforced gates so hardcoded paths and leaked model reasoning can't quietly recur."
-}
