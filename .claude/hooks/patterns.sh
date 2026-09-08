@@ -23,9 +23,9 @@
 # entirely) exists to close -- see docs/revival-plan.md.
 
 # Only code files are in scope. Markdown/docs are prose, not leaked
-# reasoning or load-bearing paths — README.md, docs/comfy-setup.md and
-# gemini.md all still describe the old /data/comfy install path on
-# purpose (historical/example text), and that's fine.
+# reasoning or load-bearing paths — README.md and docs/comfy-setup.md
+# still describe the old /data/comfy install path on purpose
+# (historical/example text), and that's fine.
 GATE_CODE_FILE_PATTERN='\.(py|sh)$'
 
 # Is this line a comment? Used to scope DELIBERATION_PATTERN to actual

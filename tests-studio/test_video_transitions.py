@@ -25,10 +25,12 @@ def test_stitcher_uses_simple_cut_strategy_by_default():
         strategy_instance.build_command.return_value = ["ffmpeg", "dummy"]
         
         stitcher.stitch(files, "story", transition="none")
-        
+
         # Verify Strategy was initialized and called
         MockStrategy.assert_called()
-        strategy_instance.build_command.assert_called_with(files, ANY, 2.0)
+        # stitch() always passes audio_files/sfx_files through (None here, since
+        # the call above doesn't set them) -- see VideoStitcher.stitch().
+        strategy_instance.build_command.assert_called_with(files, ANY, 2.0, audio_files=None, sfx_files=None)
         mock_run.assert_called_with(["ffmpeg", "dummy"], check=True, capture_output=True)
 
 def test_stitcher_uses_crossfade_strategy():
@@ -42,9 +44,9 @@ def test_stitcher_uses_crossfade_strategy():
         strategy_instance.build_command.return_value = ["ffmpeg", "dummy_xfade"]
         
         stitcher.stitch(files, "story", transition="crossfade")
-        
+
         MockStrategy.assert_called()
-        strategy_instance.build_command.assert_called_with(files, ANY, 2.0)
+        strategy_instance.build_command.assert_called_with(files, ANY, 2.0, audio_files=None, sfx_files=None)
         mock_run.assert_called_with(["ffmpeg", "dummy_xfade"], check=True, capture_output=True)
 
 def test_stitcher_uses_ai_morph_placeholder():
@@ -71,10 +73,14 @@ def test_crossfade_strategy_logic():
     files = ["1.png", "2.png", "3.png"]
     duration = 3.0 # Fade duration will be 1.0, offset 2.0
     
-    # Mock os.path.isabs and abspath to avoid filesystem issues
+    # Mock os.path.isabs/abspath/exists to avoid real filesystem access --
+    # _resolve_path() checks os.path.exists() and raises FileNotFoundError
+    # otherwise (a real, deliberate safety check, not something to work around
+    # by touching real files in a unit test).
     with patch("os.path.isabs", return_value=True), \
-         patch("os.path.abspath", side_effect=lambda x: x):
-             
+         patch("os.path.abspath", side_effect=lambda x: x), \
+         patch("os.path.exists", return_value=True):
+
         cmd = strategy.build_command(files, "/out.mp4", duration)
         
         # Check inputs

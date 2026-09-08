@@ -1,6 +1,6 @@
 # Enforced Review Gates & Revival
 
-*Status: in progress — Steps 0-2 done, Step 3 next, Steps 4-6 optional. Started 2026-09-07.*
+*Status: in progress — Steps 0-3 done, Steps 4-6 optional and not started. Started 2026-09-07.*
 
 ## Overview
 This project (Zoetrope, formerly "comfy-evergreen" / "ComfyUI Story Studio") was built Dec 2025–Feb 2026 by an unreviewed Gemini 2.5 + Conductor workflow. An audit found the project didn't actually run from a fresh checkout (hardcoded `/data/comfy` paths throughout) and that leaked model chain-of-thought ("Wait, the prompt asked for...", "I'll just... for now") had shipped straight into `studio/app.py`. Both are symptoms of the same root cause: review that existed on paper (`/conductor:conductor-review`) but nothing forced anyone — human or agent — to actually run it. 93 commits, zero invocations.
@@ -73,17 +73,17 @@ Goal: block the two failure modes above from recurring, without relying on anyon
 - [x] Adversarial red-team pass (bypass techniques / false-positive / false-negative / shell-script correctness) on the four scripts before committing. Found real issues, all fixed except one documented gap: a `core.hooksPath`/alias-tampering bypass that defeated the native hook too (fixed with an unconditional check), an abbreviated/bundled `--no-verify` bypass (fixed), several real false positives ("the user wants X" as ordinary product language, opt-out UI copy, an assistant reply string, a shell glob idiom — fixed by dropping that alternative and scoping the deliberation check to comment lines only), a diff-scanning bug that silently skipped renamed files and could be confused by content that looks like a diff header (fixed by scanning per-file with a known filename instead of parsing it from the diff text), and a self-reference bug where the gate's own rule-definition file tripped its own rules (fixed by exempting `.claude/hooks/` from both scans, same as any linter exempts its own config). Not fixed, documented as accepted: shell quote-splitting a literal substring (`git comm"it"`) — a regex reads text, not shell semantics; that gap is exactly what Step 5's CI gate is for.
 - [ ] **User verification — not done, needs you, not me:** existing Claude Code sessions with `cwd` inside this repo need a restart for the new `.claude/settings.json` hooks to register (confirm via `/hooks`).
 
-## Step 3 — Config substrate [not started]
+## Step 3 — Config substrate [done, commit pending]
 Goal: give the gates (and pytest) a real foundation instead of an unmeasured aspiration.
 
-- [ ] `pip install pytest-cov pytest-asyncio`.
-- [ ] `pyproject.toml` — deps, `testpaths`, coverage wired at `--cov-fail-under=0` initially.
-- [ ] Fix the pre-existing pytest collection failure (`studio/` not on `sys.path` when running under pytest — `import database` fails in `studio/app.py`) that Step 2's `precommit_core.sh` currently has to special-case as a warning.
-- [ ] Measure the real coverage number once tests actually collect; set the floor to `floor(actual) - 2`, ratchet upward over time.
-- [ ] Amend `conductor/workflow.md`'s aspirational ">80%" to the real number.
-- [ ] `tests-unit/test_docs_match_deps.py` — (a) imports ⊆ declared deps, (b) declared deps ⊆ imports ∪ {uvicorn, jinja2} (catches the SQLAlchemy-in-tech-stack-but-never-imported lie), (c) every backticked path in docs must exist (catches phantom dirs and any future `/data/comfy`-style regression in docs).
-- [ ] Write `CLAUDE.md` (short, re-read every turn: project + the `PROJECT_ROOT` rule + what the gates reject + a link to `conductor/code_styleguides/python.md`). Fold `gemini.md`'s GB10 content into `docs/gb10-optimization.md` and delete `gemini.md` — two context files where an agent reads only one is how the second one silently rots.
-- [ ] User verification.
+- [x] `pip install pytest-cov pytest-asyncio` (pytest-asyncio and pytest-httpx were already installed; only pytest-cov was missing).
+- [x] `pyproject.toml` — first real dependency declaration this project has ever had (no requirements.txt existed), plus `testpaths`, `pythonpath`, and coverage config.
+- [x] Fix the pytest collection failure — `pythonpath = ["studio", "scripts"]` in `pyproject.toml` (pytest's own native option). This unblocked all 14 test files, which then surfaced **9 real test failures that had never once run**. All 9 are now fixed, in three groups: 4 stale assertions against the *completed* video Strategy-pattern refactor (`build_command` gained `audio_files`/`sfx_files` kwargs; `_build_ffmpeg_command` was replaced entirely); 2 security tests that assumed path traversal still worked when the app already correctly rejects it before `os.makedirs` is ever reached (rewritten to assert the real, correct behaviour); and 2 caused by a genuine cross-test pollution bug — `tests-studio/test_av_api.py` overwrote the global `database.DB_PATH` and never restored it, silently pointing every later test at a deleted file. Also removed Step 2's now-unnecessary carve-out from `precommit_core.sh`: the pytest gate is fully enforcing, no exceptions.
+- [x] Measured: **47.44%**. Floor set to **45%** (`--cov-fail-under=45`), enforced on every commit and meant to ratchet upward.
+- [x] Amended all 5 occurrences of the aspirational ">80%" in `conductor/workflow.md` to the real, enforced floor.
+- [x] `tests-unit/test_docs_match_deps.py` — 4 checks: imports ⊆ declared deps; declared deps ⊆ imports (with a *documented-reason* allowlist for pytest plugins, uvicorn, jinja2, python-multipart); `conductor/tech-stack.md` may not claim a library nothing imports (this caught the SQLAlchemy/Alembic lie — now corrected to say the data layer is raw `sqlite3`); and directories referenced in docs must exist (this caught `stories/`/`workflows/` in README, which are really `data/stories/`/`data/workflows/`). Both doc checks had to be narrowed after first-run false positives, per the spec's own scoping rule.
+- [x] Wrote `CLAUDE.md` (non-negotiables, what the gates check, real layout, how to run it, GB10 note, styleguide link). Folded the unique GB10 content from `gemini.md` — hardware architecture, SageAttention 3, the ARM64 Docker image, why `--reserve-vram 15` behaves differently under unified memory — into `docs/gb10-optimization.md`, then deleted `gemini.md`. Its "Repository Structure" section had documented `src/`, `web/`, `stories/` and `workflows/`, none of which have ever existed in this repo.
+- [ ] **User verification — not done, needs you, not me.**
 
 ## Step 4 — In-session judgment layer (optional) [not started]
 Goal: an LLM reviewer as an *additional* layer, not a replacement for the deterministic gates above.

@@ -8,54 +8,28 @@ client = TestClient(app)
 
 @patch("studio.app.sfx_generator.generate", new_callable=AsyncMock)
 def test_generate_sfx_path_traversal(mock_generate):
-    """Test that path traversal attempts in story_name are sanitized or rejected."""
-    
-    # We want to ensure that "output/../secrets/audio/filename" is NOT created.
-    # The vulnerability was: audio_dir = os.path.join(OUTPUT_DIR, request.story_name, "audio")
-    
+    """Test that path traversal attempts in story_name are rejected.
+
+    The endpoint uses safe_join(OUTPUT_DIR, request.story_name), which
+    raises ValueError when the resolved path would escape OUTPUT_DIR; the
+    endpoint catches that and returns an error *before* ever creating a
+    directory. Verified directly: os.makedirs is never called, and no
+    audio generation is attempted.
+    """
     payload = {
         "text": "footsteps",
-        "story_name": "../../../secrets" 
+        "story_name": "../../../secrets"
     }
-    
-    # We mock the actual generation to avoid calling ComfyUI, 
-    # but we want to check the path that was passed to it or created.
-    # However, the vulnerability is in os.makedirs(audio_dir) inside the endpoint
-    # BEFORE calling generator.
-    
-    # We can mock os.makedirs to verify the path it receives.
+
     with patch("os.makedirs") as mock_makedirs:
         response = client.post("/api/generate_sfx", json=payload)
-        
-        # We expect the current implementation to attempt to create the malicious path
-        # leading to a security issue.
-        # But since we are writing a FAILING test for the remediation,
-        # we assert that it SHOULD FAIL to create that path or sanitize it.
-        
-        # Wait, TDD says write a failing test.
-        # The CURRENT behavior ALLOWS traversal.
-        # So a test that asserts "Traversal is blocked" will FAIL.
-        
-        # Let's inspect what makedirs was called with.
-        # If traversal is BLOCKED, makedirs should be called with something safe,
-        # or the endpoint should return an error.
-        
-        # Let's assume we want to sanitize it to "secrets" or just reject it.
-        # The spec says "Sanitize ... Prevent directory traversal".
-        
-        # If we assert that the path does NOT contain "..", the test will fail on the current code.
-        
-        assert response.status_code == 200 # It might still return 200 if we just sanitize
-        
-        # Get the path passed to makedirs
-        args, _ = mock_makedirs.call_args
-        created_dir = args[0]
-        
-        # We want to ensure the resolved path is inside OUTPUT_DIR
-        # For the failing test, we assert that it IS safe. 
-        # Since currently it is NOT safe, this assertion will FAIL.
-        
-        assert ".." not in created_dir
-        # It should end with /secrets/audio (because basename kept 'secrets')
-        # but it should be rooted in OUTPUT_DIR
-        assert created_dir.endswith("/secrets/audio")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "error"
+        assert "Invalid story name" in data["message"]
+
+        # The rejection happens before any directory is created or any
+        # audio is generated -- the traversal path is never touched.
+        mock_makedirs.assert_not_called()
+        mock_generate.assert_not_called()

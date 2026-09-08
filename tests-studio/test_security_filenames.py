@@ -52,21 +52,11 @@ async def test_sfx_filename_is_uuid(httpx_mock, monkeypatch):
     filename = data.get("filename")
     assert filename is not None
     
-    # Regex for UUID v4
-    # It might be sfx_<uuid>.flac
-    # uuid_regex = r'[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}'
-    
-    # Current implementation uses timestamp: sfx_<int>.flac
-    # We expect this test to FAIL first (Red phase) because it currently uses timestamp.
-    
-    # So let's assert it DOES contain a UUID.
     assert "sfx_" in filename
-    # assert len(filename) > 40 # UUID is 36 chars + prefix/suffix
-    
-    # Proper UUID check
+
+    # Actual format (studio/app.py generate_sfx): sfx_<8-hex-char short uuid>.wav
     import re
-    # Look for 8-char short UUID pattern (hex)
-    match = re.search(r'sfx_[0-9a-f]{8}\.flac', filename)
+    match = re.search(r'sfx_[0-9a-f]{8}\.wav', filename)
     assert match is not None, f"Filename {filename} does not contain an 8-char hex UUID"
 
 @pytest.mark.asyncio

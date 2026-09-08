@@ -104,28 +104,26 @@ if [ -n "$ABSPATH_FOUND" ]; then
 fi
 
 # --- 2. Test suite ---
-# Known pre-existing issue (tracked for Step 3, not this gate): pytest
-# can't even collect tests-studio/ yet because studio/ isn't on sys.path,
-# so `import database` fails in studio/app.py. That failure predates this
-# hook and isn't a regression the diff introduced, so it's a warning here,
-# not a block -- otherwise Step 2 would make the repo uncommittable until
-# Step 3 lands. Any OTHER pytest failure still blocks normally.
+# Step 3 removed the carve-out that used to live here. Until then, pytest
+# couldn't even collect tests-studio/ (studio/ wasn't on sys.path, so
+# `import database` failed in studio/app.py), and this hook had to treat
+# that specific signature as a warning so the repo stayed committable.
+# pyproject.toml's `pythonpath` setting fixed the collection failure and
+# the 9 real test failures it had been hiding are fixed too, so the suite
+# is green and any failure here is now a genuine regression -- no
+# exceptions, no special cases. Config (testpaths, coverage floor) comes
+# from pyproject.toml, so this runs exactly what a bare `pytest` runs.
 PYTEST_BIN="$REPO_ROOT/comfyui-env/bin/python"
 if [ -x "$PYTEST_BIN" ]; then
-    PYTEST_OUT="$("$PYTEST_BIN" -m pytest "$REPO_ROOT/tests-studio" -q 2>&1)"
+    PYTEST_OUT="$(cd "$REPO_ROOT" && "$PYTEST_BIN" -m pytest -q 2>&1)"
     PYTEST_EXIT=$?
 
     if [ "$PYTEST_EXIT" -ne 0 ]; then
-        if printf '%s' "$PYTEST_OUT" | grep -q "ModuleNotFoundError: No module named 'database'" \
-           && printf '%s' "$PYTEST_OUT" | grep -q "errors during collection"; then
-            echo "precommit_core.sh: WARNING -- tests-studio/ still can't be collected (pre-existing studio/ sys.path issue, tracked for Step 3). Not blocking on this known issue." >&2
-        else
-            {
-                echo "precommit_core.sh: pytest failed (exit $PYTEST_EXIT):"
-                printf '%s\n' "$PYTEST_OUT" | tail -30 | sed 's/^/  /'
-            } >&2
-            FAILED=1
-        fi
+        {
+            echo "precommit_core.sh: pytest failed (exit $PYTEST_EXIT):"
+            printf '%s\n' "$PYTEST_OUT" | tail -30 | sed 's/^/  /'
+        } >&2
+        FAILED=1
     fi
 else
     echo "precommit_core.sh: WARNING -- $PYTEST_BIN not found, skipping test suite." >&2

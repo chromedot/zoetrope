@@ -10,6 +10,15 @@ from unittest.mock import patch
 
 class TestAVAPI(unittest.TestCase):
     def setUp(self):
+        # database.DB_PATH is a module-level global shared with every other
+        # test in the process -- save and restore it in tearDown (below),
+        # otherwise every test that runs afterward silently points at this
+        # test's db file (which tearDown deletes), a real cross-test
+        # pollution bug found while wiring up Step 3's pytest config
+        # (tests-studio/test_dynamic_stories.py and
+        # tests-studio/test_security_filenames.py failed, but only when run
+        # after this file -- both passed in isolation).
+        self._original_db_path = database.DB_PATH
         self.test_db_path = "data/test_av_api.db"
         database.DB_PATH = self.test_db_path
         if os.path.exists(self.test_db_path):
@@ -44,6 +53,7 @@ class TestAVAPI(unittest.TestCase):
         self.client = TestClient(app)
 
     def tearDown(self):
+        database.DB_PATH = self._original_db_path
         if os.path.exists(self.test_db_path):
             os.remove(self.test_db_path)
         if os.path.exists(self.story_path):

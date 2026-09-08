@@ -10,11 +10,11 @@ This project automates AI storytelling using ComfyUI for image generation and a 
 | **`comfyui-env/`** | **The Environment.** Python virtualenv containing PyTorch and dependencies. |
 | **`studio/`** | **The Web UI.** FastAPI application (`app.py`), templates, and static files. |
 | **`scripts/`** | **Automation & Startup.** Scripts to launch services and run batch jobs. |
-| **`data/`** | **Persistent Data.** Stores `stories/`, `workflows/`, and the `story_studio.db` database. **Note:** Workflows here are copied to `default/workflows` for ComfyUI visibility. |
+| **`data/`** | **Persistent Data.** Stores `data/stories/`, `data/workflows/`, and the `story_studio.db` database. **Note:** Workflows here are copied to `default/workflows/` for ComfyUI visibility. |
 | **`logs/`** | **Logs.** Centralized logs for both ComfyUI (`comfyui.log`) and Studio (`studio.log`). |
 | **`output/`** | **Generated Content.** Final images organized by story name. `ComfyUI/output` is a symlink to this folder. |
 | **`models/`** | **Models.** Central storage for Checkpoints, Loras, and embeddings. |
-| **`docs/`** | **Documentation.** Project notes (`gemini.md`) and setup guides. |
+| **`docs/`** | **Documentation.** Setup guides, the GB10 tuning notes, and the current work plan (`docs/revival-plan.md`). |
 
 ## Quick Start (Local)
 

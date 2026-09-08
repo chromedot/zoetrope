@@ -1,0 +1,51 @@
+[project]
+name = "zoetrope"
+version = "0.1.0"
+description = "Automates AI storytelling using ComfyUI for image generation and a custom Web Studio for management."
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "jinja2",
+    "pydantic",
+    "httpx",
+    "edge-tts",
+    "python-multipart",
+]
+
+[project.optional-dependencies]
+# Heavy ML deps only exercised by tests-unit/test_audioldm_fp8.py -- not
+# needed to run the studio app itself.
+audioldm = ["torch", "diffusers"]
+# scripts/review_story.py's TUI, not part of the web app.
+tui = ["textual"]
+# studio/app.py's /api/refine_prompt lazily imports this and degrades
+# gracefully (a friendly error, not a crash) if it isn't installed --
+# genuinely optional, not a hard dependency of the app.
+gemini-refine = ["google-generativeai"]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-httpx",
+    "pytest-cov",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests-studio", "tests-unit"]
+# Fixes the pre-existing collection failure (studio/app.py does
+# `import database`, which needs studio/ on sys.path; several
+# scripts/*.py files import each other as siblings the same way).
+# This is pytest's own native option (since 7.0) -- no plugin needed.
+pythonpath = ["studio", "scripts"]
+# Floor is the real measured number (47%) minus 2, per docs/revival-plan.md --
+# a floor that actually holds today, meant to be ratcheted upward as coverage
+# improves, not an aspirational number nobody ever verified.
+addopts = "--cov=studio --cov=scripts --cov-report=term-missing --cov-fail-under=45"
+
+[tool.coverage.run]
+source = ["studio", "scripts"]
+omit = ["scripts/__pycache__/*"]

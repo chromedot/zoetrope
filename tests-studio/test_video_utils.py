@@ -2,7 +2,7 @@ import unittest
 import os
 import shutil
 import tempfile
-from scripts.video_utils import VideoStitcher
+from scripts.video_utils import VideoStitcher, SimpleCutStrategy
 
 class TestVideoStitcher(unittest.TestCase):
     def setUp(self):
@@ -24,9 +24,13 @@ class TestVideoStitcher(unittest.TestCase):
 
     def test_generate_ffmpeg_command_simple(self):
         """Test generating a simple ffmpeg command without complex transitions."""
+        # _build_ffmpeg_command was replaced by the Strategy-pattern refactor
+        # (VideoStitcher.stitch() dispatches to a TransitionStrategy subclass);
+        # "none" maps to SimpleCutStrategy.
         output_path = os.path.join(self.output_dir, "test.mp4")
-        cmd = self.stitcher._build_ffmpeg_command(self.image_files, output_path, transition="none")
-        
+        strategy = SimpleCutStrategy(self.output_dir)
+        cmd = strategy.build_command(self.image_files, output_path, duration=2.0)
+
         # Check for key parts of the command
         self.assertIn("ffmpeg", cmd)
         self.assertIn("-i", cmd)

@@ -2,6 +2,17 @@
 
 This document captures specific system and application-level optimizations for running ComfyUI on the NVIDIA GB10 (Grace-Blackwell) platform.
 
+## 0. Hardware Architecture (the "SoC" reality)
+
+*   **Architecture:** Grace CPU (ARM) + Blackwell GPU in a unified package.
+*   **Memory:** 128GB LPDDR5X, **unified** — VRAM *is* system RAM. No PCIe transfer bottleneck between host and device, and no separate VRAM pool to budget against.
+*   **Power:** ~140W total TDP, shared between CPU and GPU. Power taken back from one side is available to the other (see §3).
+*   **Tensor Cores:** Blackwell introduced 5th-generation Tensor Cores with native hardware acceleration for 4-bit floating point (NVFP4) — more efficient still than the FP8 path this project currently uses.
+
+Two consequences worth internalizing, because they drive the flags in §2: unified
+memory is why `--highvram` is correct here and would be reckless on a discrete
+card, and shared TDP is why capping the CPU can *raise* GPU throughput.
+
 ## 1. Disk I/O Optimization (Model Loading Speed)
 
 To significantly improve the loading speed of large model checkpoints (Flux, SDXL, etc.), we increase the disk read-ahead buffer. This allows the OS to pre-fetch more data into RAM during sequential reads.
@@ -60,3 +71,12 @@ If the workload becomes GPU-bound and thermal throttling is a concern, you can c
 sudo cpupower frequency-set -u 1.5GHz
 ```
 
+
+## 4. Attention Backend
+
+*   **SageAttention 3** is the high-speed attention path for Blackwell — worth using where the workflow supports it.
+
+## 5. Environment Notes
+
+*   **Docker (if containerising):** use `nvcr.io/nvidia/pytorch:24.10-py3` or newer for GB10 on ARM64. Older images predate Blackwell support.
+*   **`--reserve-vram 15` is safe and effective for Flux here.** Because memory is unified, that 15GB is reserved for the Grace CPU and the OS out of the same 128GB pool the GPU draws from — it prevents system-level OOM rather than capping model size the way a discrete-GPU VRAM reservation would.

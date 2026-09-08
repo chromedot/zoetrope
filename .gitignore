@@ -45,6 +45,12 @@ user/
 .claude/settings.local.json
 .claude/review-receipts/
 
+# --- Test & Coverage Artifacts ---
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+
 # --- Temporary/Backup Files ---
 *.bak
 *.swp
