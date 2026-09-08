@@ -9,7 +9,7 @@ This track (a) repairs the project into a working, portable, sensibly-named stat
 1. Preserve the pre-revival codebase as a permanent, citable historical artifact (git tag, pushed) before changing anything.
 2. Make the project runnable from any location — no hardcoded absolute paths in code.
 3. Remove leaked model reasoning/deliberation comments from shipped code.
-4. Add deterministic (no LLM) gates that **block**, not just flag, the two failure modes above from recurring — both at edit-time (PreToolUse hooks on Write/Edit) and at commit-time (a real `.git/hooks/pre-commit`, so it applies no matter who or what is committing), including a gate against bypassing the gate itself (`--no-verify`).
+4. Add deterministic (no LLM) gates that **block**, not just flag, the two failure modes above from recurring — both at edit-time (PreToolUse hooks on Write/Edit) and at commit-time (a real `.git/hooks/pre-commit`, so it applies no matter who or what is committing). This must include guarding against bypassing the gate itself: not just the literal `--no-verify` flag, but abbreviations of it, short-flag bundling (`-nm`), and git-config-level tampering (`core.hooksPath`, a commit-aliasing `git config alias.*`) that defeats the native hook without ever typing `--no-verify` at all.
 5. Establish a real pytest/coverage baseline — `conductor/workflow.md`'s aspirational ">80%" was never actually measured.
 6. *(Optional)* Add an in-session LLM judgment layer on top of the deterministic gates, guarded so it can't fire more than once per diff state.
 7. *(Optional)* Mirror the same deterministic gate in GitHub Actions — the actual non-bypassable-by-Claude backstop.
@@ -19,6 +19,8 @@ This track (a) repairs the project into a working, portable, sensibly-named stat
 - A broken or misconfigured hook must fail **open** (never silently block all work).
 - Gates operate on new/changed text only where possible (PreToolUse hooks inspect the tool call's own new content, not the whole file), so they stay fast and low-noise.
 - Project-scoped settings only (`.claude/settings.json`) — the user's global `~/.claude/settings.json` must stay untouched.
+- A gate's own rule-definition files (e.g. a shared regex-patterns file) must be exempt from the rules they define. The file that documents or detects a bad pattern will otherwise always contain a literal instance of it — as regex source, or as a worked example in a comment — and fail its own check. (Confirmed in practice: `patterns.sh` tripped its own `ABSPATH_PATTERN` the first time it was staged.)
+- Pattern-based detection should be scoped as narrowly as the actual failure mode (e.g. a leaked-reasoning check should look at code comments only, never string literals or product copy), and validated against *this* codebase's real vocabulary before being trusted — a phrase can be completely ordinary language in one domain ("the user wants X" in an image/video generation studio) and a real signal in another.
 
 ## Acceptance Criteria
 - `v0-gemini-era` tag exists and is pushed; permalinks into it resolve.
@@ -26,8 +28,9 @@ This track (a) repairs the project into a working, portable, sensibly-named stat
 - A staged commit containing a leaked-reasoning comment or a hardcoded absolute path is rejected by `.git/hooks/pre-commit`, regardless of whether it goes through Claude Code.
 - `git commit --no-verify` (or `-n`) is blocked when attempted through Claude Code's Bash tool.
 - Real pytest coverage is measured and the coverage floor reflects the real number, not an unverified aspirational one.
+- Any new deterministic pattern or gate (Step 2's, and any added later in Steps 3–6) is adversarially tested — bypass attempts, false positives against this codebase's real code, false negatives, and script correctness — before being merged, not just checked against the positive/negative examples it was originally designed around. Step 2's own red-team pass found 3 real high-severity bypasses and 6 real false positives that its manual test battery had missed.
 
 ## Out of Scope
 - Rewriting or fixing bugs in the actual storytelling application logic (SFX/TTS/video pipeline) — this track is the review/repair layer, not new product features.
 - The project/repo rename itself (handled separately, already done: `chromedot/comfy` → `chromedot/zoetrope`, folder `comfy-evergreen` → `Zoetrope`).
-- Perfect, unbypassable enforcement. Step 2's gates are an explicitly best-effort deterministic layer; Step 5's CI gate is the actual non-forgeable backstop, and is optional/not yet built.
+- Perfect, unbypassable enforcement. Step 2's gates are an explicitly best-effort deterministic layer, confirmed during implementation to be evadable by shell-quote-splitting a literal substring the gate looks for (e.g. `git comm"it" --no-verify`, where bash reassembles the word "commit" from two quoted fragments the gate's regex never sees as contiguous text) — a regex reads command text, not shell semantics, and closing that gap fully isn't worth chasing here. Step 5's CI gate (server-side, outside Claude's control entirely) is the actual non-forgeable backstop, and is optional/not yet built.
