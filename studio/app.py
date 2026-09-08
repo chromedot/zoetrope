@@ -163,9 +163,7 @@ async def generate_sfx(request: SFXRequest):
             scene['sfx_text'] = request.text
             manager.save_story()
             
-            # Update Database (Sprint 2 table doesn't have sfx columns yet, skipping or I should add them?)
-            # I'll skip DB update for SFX for now or add it to database.py if I want consistency.
-            # Given the constraints, I'll stick to JSON manager for SFX mapping for now.
+            # SFX mapping isn't in the DB schema yet; the JSON story manager is the source of truth for it.
         
         return {
             "status": "success", 
@@ -298,20 +296,7 @@ async def check_status(prefix: str, run_id: int = None):
         
         # Sprint 2: Update DB if run_id provided
         if run_id:
-            # We need start time to calc duration. 
-            # Ideally we'd fetch created_at from DB, but for simplicity:
-            # We'll just assume start time was when record was created.
-            # Let's get the record to be precise if we want, or just update.
-            # We'll calculate duration based on file mtime vs current time? 
-            # Or better: current time - created_at.
-            # Let's just pass a duration calculation if we can. 
-            # For now, I'll calculate duration as (Now - File Modification Time)?? No.
-            # I'll just use (Now - Created_At). I need to fetch Created_At.
-            # Simplified: Let the DB update handle the timestamp logic or just pass a rough duration.
-            # I'll modify update_generation_record to just take the current time and we can calc diff later,
-            # or I'll just pass 0 for now if I don't want to query first.
-            # Wait, the prompt asked for "average time to make one".
-            # I should do: 
+            # Duration = time elapsed since the record was created (fetched from the DB).
             conn = database.get_db_connection()
             cur = conn.cursor()
             cur.execute("SELECT created_at FROM generated_images WHERE id=?", (run_id,))

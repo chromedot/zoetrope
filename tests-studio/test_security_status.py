@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from studio.app import app
+from studio.app import app, OUTPUT_DIR
 from unittest.mock import patch
 import os
 
@@ -32,7 +32,7 @@ def test_check_status_path_traversal():
             assert ".." not in search_path
             # And specifically check it doesn't try to access the secret file
             # Note: In the failing test (current code), this assertion will fail.
-            assert "/secret_file" not in search_path or search_path.startswith("/data/comfy/output/secret_file")
+            assert "/secret_file" not in search_path or search_path.startswith(os.path.join(OUTPUT_DIR, "secret_file"))
         else:
              # This is also a pass - we prevented the file access
              pass

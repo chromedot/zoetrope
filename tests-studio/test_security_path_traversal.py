@@ -17,7 +17,7 @@ def test_check_status_path_traversal():
     # search_path = os.path.join(OUTPUT_DIR, folder, file_prefix + "*.png")
     
     # If we pass prefix="../../etc/passwd", folder is "../../etc", file_prefix is "passwd"
-    # joined: /data/comfy/output/../../etc/passwd*.png -> /data/comfy/etc/passwd*.png (still inside project, but outside output)
+    # joined: <PROJECT_ROOT>/output/../../etc/passwd*.png -> <PROJECT_ROOT>/etc/passwd*.png (still inside project, but outside output)
     # If we go deeper: "../../../../../etc/passwd"
     
     response = client.get("/api/check_status?prefix=../../../../../etc/passwd")

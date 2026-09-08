@@ -76,7 +76,7 @@ class ComfyAudioGenerator(AudioGenerator):
         # 1. Determine Output details
         # ComfyUI saves relative to its output directory.
         # We need to extract the subfolder from output_path relative to Comfy output.
-        # Assuming output_path is like /data/comfy/output/story_name/audio/filename.wav
+        # Assuming output_path is like <PROJECT_ROOT>/output/story_name/audio/filename.wav
         
         # We'll use a standard template workflow
         workflow = self._get_workflow(text)

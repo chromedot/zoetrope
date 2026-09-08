@@ -3,6 +3,9 @@ import subprocess
 import datetime
 import logging
 from abc import ABC, abstractmethod
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 logger = logging.getLogger(__name__)
 
@@ -273,7 +276,7 @@ class AudioMixedStrategy(TransitionStrategy):
         return cmd
 
 class VideoStitcher:
-    def __init__(self, output_root="/data/comfy/output"):
+    def __init__(self, output_root=str(PROJECT_ROOT / "output")):
         self.output_root = output_root
 
     def get_output_path(self, story_name):

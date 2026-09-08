@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configuration
-COMFY_ROOT="/data/comfy"
+COMFY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_DIR="$COMFY_ROOT/logs"
 PID_DIR="$COMFY_ROOT/pids"
 COMFY_PID_FILE="$PID_DIR/comfyui.pid"
@@ -42,8 +42,7 @@ start() {
         cd "$COMFY_ROOT/studio"
         
         export DB_PATH="$COMFY_ROOT/data/story_studio.db"
-        # We need to use the venv python, usually via relative path or full path
-        # Assuming we are in /data/comfy/studio, the venv is ../comfyui-env
+        # Use the venv python via COMFY_ROOT rather than relying on PATH
         
         nohup "$COMFY_ROOT/comfyui-env/bin/python" app.py > "$LOG_DIR/studio.log" 2>&1 &
         

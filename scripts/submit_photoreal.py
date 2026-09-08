@@ -2,6 +2,9 @@ import json
 import random
 import urllib.request
 import urllib.parse
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 # 1. Load the last run data
 try:
@@ -18,7 +21,7 @@ api_payload = prompt_data[2]
 ...
 
 # 4. Save to file for the user
-with open('/data/comfy/workflows/flux_photoreal_api.json', 'w') as f:
+with open(PROJECT_ROOT / 'workflows' / 'flux_photoreal_api.json', 'w') as f:
     json.dump(api_payload, f, indent=2)
 
 # 5. Submit to API

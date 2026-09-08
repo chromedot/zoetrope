@@ -1,11 +1,14 @@
 import sqlite3
 import os
 import datetime
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 # Allow overriding via env var for Docker
 DB_PATH = os.environ.get("DB_PATH")
 if not DB_PATH:
-    DB_PATH = "/data/comfy/data/story_studio.db"
+    DB_PATH = str(PROJECT_ROOT / "data" / "story_studio.db")
 else:
     # Ensure directory exists if custom path used
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
@@ -250,7 +253,7 @@ def delete_video_record(video_id):
     c.execute('SELECT story_name, filename FROM generated_videos WHERE id = ?', (video_id,))
     row = c.fetchone()
     if row:
-        video_path = os.path.join("/data/comfy/output", row['story_name'], "videos", row['filename'])
+        video_path = os.path.join(str(PROJECT_ROOT / "output"), row['story_name'], "videos", row['filename'])
         if os.path.exists(video_path):
             os.remove(video_path)
     

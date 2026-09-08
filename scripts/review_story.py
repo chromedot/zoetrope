@@ -1,4 +1,4 @@
-#!/data/comfy/comfyui-env/bin/python
+#!/usr/bin/env python3
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical, ScrollableContainer
 from textual.widgets import Header, Footer, ListView, ListItem, Label, TextArea, Button, Static

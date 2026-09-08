@@ -4,9 +4,11 @@ import re
 from pathlib import Path
 from typing import List, Dict, Any
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
 # Configuration
-STORY_PATH = Path('/data/comfy/stories/geronimo.story')
-OUTPUT_DIRECTORY = Path('/data/comfy/output')
+STORY_PATH = PROJECT_ROOT / 'stories' / 'geronimo.story'
+OUTPUT_DIRECTORY = PROJECT_ROOT / 'output'
 
 def sanitize_filename(text: str) -> str:
     """Converts a description into a filesystem-safe string."""

@@ -9,10 +9,8 @@ Thumbs.db
 *.pid
 *.sock
 *.pid.lock
-*.pid.lock.tmp  
+*.pid.lock.tmp
 pids/
-/tests-studio
-/tests-unit
 
 # --- ComfyUI Core & Runtime ---
 # We generally don't want to commit the ComfyUI engine itself, 
@@ -41,6 +39,11 @@ wget-log*
 __manager/
 last_run.json
 help_log.txt
+user/
+
+# --- Claude Code local state ---
+.claude/settings.local.json
+.claude/review-receipts/
 
 # --- Temporary/Backup Files ---
 *.bak

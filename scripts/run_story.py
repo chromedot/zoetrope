@@ -6,12 +6,15 @@ import os
 import re
 import sqlite3
 import datetime
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 # Configuration
-STORY_FILE = '/data/comfy/data/stories/geronimo.story'
-TEMPLATE_FILE = '/data/comfy/data/workflows/flux_photoreal_api.json'
+STORY_FILE = str(PROJECT_ROOT / 'data' / 'stories' / 'geronimo.story')
+TEMPLATE_FILE = str(PROJECT_ROOT / 'data' / 'workflows' / 'flux_photoreal_api.json')
 COMFY_URL = "http://127.0.0.1:8188/prompt"
-DB_PATH = '/data/comfy/data/story_studio.db'
+DB_PATH = str(PROJECT_ROOT / 'data' / 'story_studio.db')
 
 # Get story name from filename (e.g. "geronimo" from "geronimo.story")
 story_name = os.path.splitext(os.path.basename(STORY_FILE))[0]
