@@ -5,8 +5,15 @@ import os
 import sys
 from diffusers import AudioLDM2Pipeline
 
-# Mock folder_paths if needed, or just use absolute path for test
-MODEL_PATH = os.path.abspath("models/audio_checkpoints/audioldm2-large")
+# ComfyUI/models/ is the tree ComfyUI actually reads. This previously pointed at
+# models/audio_checkpoints/audioldm2-large, which was a byte-identical duplicate
+# outside ComfyUI's reach (the root models/ tree is unreachable because
+# ComfyUI/extra_model_paths.yaml names a path that no longer exists). Deleting
+# that 12 GB duplicate turned this test into a permanent silent skip, which is
+# how the wrong path came to light -- it had been asserting against a copy the
+# running system never loads.
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_PATH = os.path.join(_REPO_ROOT, "ComfyUI", "models", "audioldm2-large")
 
 class TestAudioLDMFP8(unittest.TestCase):
     def test_01_fp8_datatype_exists(self):

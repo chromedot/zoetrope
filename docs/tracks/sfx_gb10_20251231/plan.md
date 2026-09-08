@@ -24,6 +24,31 @@ Goal: Ensure the backend handles the new model output correctly.
 - [x] Task: Update `api/generate_sfx` in `studio/app.py` to handle any changes in metadata or file formats.
 - [ ] Task: User Manual Verification 'Phase 3: Integration' (manual check by the user)
 
+## STATUS as of 2026-09-08: SFX generation is currently broken
+
+Verified by running it: `POST /api/generate_sfx` returns `{"status":"error","message":"'21'"}`.
+That error is `audio_utils.py` failing to find node 21's output in ComfyUI's
+history — a symptom, not the cause. ComfyUI's own log has the real failure:
+
+```
+RuntimeError: mat1 and mat2 must have the same dtype, but got Half and Float8_e4m3fn
+  diffusers/pipelines/audioldm2/pipeline_audioldm2.py:1061 in __call__
+  diffusers/pipelines/audioldm2/modeling_audioldm2.py:729 in forward
+```
+
+The model loads fine — `Loading cvssp/audioldm2-large. Target precision: fp8.
+Load dtype: torch.float16` — and then the first matmul fails, because weights
+loaded as float16 are multiplied against an fp8 tensor. This is Phase 2 of this
+track (FP8 loading) being incomplete rather than done: the plumbing runs, the
+precision conversion does not.
+
+Unblocking it means either casting consistently at load time, or dropping to
+fp16 for AudioLDM2 specifically and keeping fp8 for the image models. Existing
+SFX files in output/ predate the fp8 change and are unaffected.
+
+Note also that scene duration is currently driven by SFX length where a scene
+has no narration, so broken SFX has knock-on effects on video timing.
+
 ## Phase 4: Blackwell Optimization Audit [checkpoint: pending]
 Goal: Verify performance and fidelity on GB10.
 
