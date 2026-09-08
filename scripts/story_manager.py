@@ -6,6 +6,24 @@ import re
 import datetime
 import glob
 
+# Generation resolution, per output format.
+#
+# Both are ~1.03 megapixels and exact transposes of each other, so a vertical
+# scene costs the same GPU time as a landscape one (~44s on the GB10), and
+# neither strays from the aspect ratios Flux handles well.
+#
+# These are *generation* sizes, deliberately not delivery sizes. Asking the
+# model for a full 1080x1920 (2.07MP) is both slower and more prone to
+# composition artifacts than generating at ~1MP and letting ffmpeg scale up
+# during assembly -- 768x1344 and 1080x1920 are both exactly 9:16, so that
+# scale is a clean resize with no crop and no letterboxing.
+RESOLUTIONS = {
+    "vertical": (768, 1344),    # 9:16 -- YouTube Shorts, Reels, TikTok
+    "landscape": (1344, 768),   # 16:9 -- standard YouTube
+}
+DEFAULT_ORIENTATION = "vertical"
+
+
 class StoryManager:
     def __init__(self, story_file):
         self.story_file = os.path.abspath(story_file)
@@ -36,6 +54,15 @@ class StoryManager:
             self.workflow_template = os.environ.get("WORKFLOW_TEMPLATE")
         else:
             self.workflow_template = os.path.join(base_dir, 'data', 'workflows', 'flux_photoreal_api.json')
+
+        # Output orientation. Env var override follows the same convention as
+        # BASE_DIR/OUTPUT_DIR/WORKFLOW_TEMPLATE above; an unrecognised value
+        # falls back to the default rather than generating at a broken size.
+        orientation = os.environ.get("ORIENTATION", DEFAULT_ORIENTATION).lower()
+        if orientation not in RESOLUTIONS:
+            orientation = DEFAULT_ORIENTATION
+        self.orientation = orientation
+        self.width, self.height = RESOLUTIONS[orientation]
 
         with open(self.workflow_template, 'r') as f:
             self.base_workflow = json.load(f)
@@ -179,14 +206,14 @@ class StoryManager:
         positive_prompt = f"{scene_data['prompt']} Hyper-realistic, 8k resolution, cinematic lighting, shot on 35mm film."
         workflow["6"]["inputs"]["text"] = positive_prompt
 
-        # 2. Setup Resolution (16:9)
+        # 2. Setup Resolution (see RESOLUTIONS at module level)
         if "27" in workflow and "inputs" in workflow["27"]:
-            workflow["27"]["inputs"]["width"] = 1344
-            workflow["27"]["inputs"]["height"] = 768
+            workflow["27"]["inputs"]["width"] = self.width
+            workflow["27"]["inputs"]["height"] = self.height
             workflow["27"]["inputs"]["batch_size"] = 1
         if "25" in workflow and "inputs" in workflow["25"]:
-            workflow["25"]["inputs"]["width"] = 1344
-            workflow["25"]["inputs"]["height"] = 768
+            workflow["25"]["inputs"]["width"] = self.width
+            workflow["25"]["inputs"]["height"] = self.height
 
         # 3. Handle Seed based on seed_mode
         current_seed = scene_data.get('seed', 0)
