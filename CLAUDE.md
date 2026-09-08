@@ -26,7 +26,7 @@ Automated AI storytelling: a `.story` file (scenes + prompts + narration text) g
 | `data/` | `stories/*.story`, `workflows/*.json`, `story_studio.db` |
 | `tests-studio/`, `tests-unit/` | pytest suite — 56 tests, all passing (floor 52% in `pyproject.toml`, real coverage 54%) |
 | `output/` | Generated media, per story. ComfyUI writes here because `evergreen.sh` passes `--output-directory`, not via any symlink |
-| `docs/` | Setup and reference for anyone running this: `models.md` (the downloads), `gb10-optimization.md` (hardware tuning), `tech-stack.md`, `product.md`, `comfy-setup.md`, `docs/code_styleguides/` |
+| `docs/` | Setup and reference for anyone running this: `models.md` (the downloads), `gb10-optimization.md` (hardware tuning), `tech-stack.md`, `product.md`, `comfy-setup.md`, and the `style-*.md` guides |
 
 ## Running it
 
@@ -60,4 +60,4 @@ No enforced format — the conventional-commits convention this project once doc
 
 ## Style
 
-`docs/code_styleguides/python.md` and `docs/code_styleguides/general.md`. Match surrounding code over the guide where they disagree.
+`docs/style-python.md` and `docs/style-general.md`. Match surrounding code over the guide where they disagree.

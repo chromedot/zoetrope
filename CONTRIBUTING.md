@@ -2,39 +2,26 @@
 
 Thanks for looking. Before anything else, read the [Hardware](README.md#hardware) note — this project currently targets one machine (NVIDIA GB10, 128 GB unified memory), and most of what could go wrong for you is downstream of that.
 
-## The gates
+## Before you commit
 
-Commits in this repo pass through automated checks. They are not advisory, and they exist because of a specific history: this project was originally built by an unreviewed AI workflow that shipped 54 hardcoded absolute paths and a block of leaked model reasoning into `main` across 93 commits, because review existed as a command nobody was obliged to run.
+Every commit here — human or AI-assisted — passes through an automated pre-commit gate: no hardcoded machine-specific paths, no code comments that read as leaked reasoning, and the full test suite (56 tests) must pass. `--no-verify` and its usual workarounds are blocked on purpose.
 
-`.git/hooks/pre-commit` runs `.claude/hooks/precommit_core.sh`, which rejects a commit if:
-
-- **A hardcoded machine-specific path** appears in new `.py`/`.sh` code. Derive paths from `PROJECT_ROOT` in `studio/paths.py`, or `Path(__file__).resolve().parents[N]`.
-- **A code comment reads as leaked reasoning** — "I'll just… for now", "not sure but…", "Wait, the prompt asked for…". A comment should say what the code does.
-- **A test fails.** All 51 must pass, and coverage must stay at or above the floor in `pyproject.toml`.
-
-If a gate fires, fix the finding. Don't reach for `--no-verify` — it's blocked on purpose, along with its abbreviations, bundled short flags, and `core.hooksPath` tampering.
-
-Two exemptions, both narrow: `.claude/hooks/` is exempt from the pattern checks, because a rules file necessarily contains the patterns it detects. Documentation is out of scope for the path check, since docs legitimately quote example paths.
+The full mechanics — exactly which patterns get rejected, which hooks enforce them, and the narrow exemptions — live in [`CLAUDE.md`](CLAUDE.md), and are kept there rather than duplicated here so there's one place to keep current.
 
 ## Definition of done
 
-1. `./comfyui-env/bin/python -m pytest` passes.
-2. The gates pass.
-3. **If you touched the generation pipeline, you ran the pipeline.**
+1. `./comfyui-env/bin/python -m pytest` passes, and the gates pass.
+2. **If you touched the generation pipeline, you ran the pipeline** — started the services, generated a scene, assembled a video, watched it.
 
-That third item is not boilerplate. `evergreen.sh` was unable to launch ComfyUI for months while printing a process id and reporting success over a dead backend — and every test passed throughout, because nothing in the suite starts a service. Three of the four bugs found on 8 September 2026 were invisible to the test suite by construction and surfaced within minutes of actually running the thing.
-
-Start the services, generate a scene, assemble a video, watch it.
+That second item is not boilerplate: `evergreen.sh` was unable to launch ComfyUI for months while printing a process id and reporting success over a dead backend, and every test passed throughout, because nothing in the suite starts a service. See `CLAUDE.md`'s Definition of done for the specifics of what that cost.
 
 ## Commit messages
 
-No enforced format. This project documented a conventional-commits standard once and followed it in 27% of commits, so it isn't claimed here.
-
-What is expected: a subject line saying what changed, and a body saying **why** — including what you verified and anything you deliberately left alone. `git log` is the only durable record of reasoning this project keeps, and it's treated that way.
+No enforced format. What's expected: a subject line saying what changed, and a body saying **why** — including what you verified and anything you deliberately left alone. `git log` is the only durable record of reasoning this project keeps.
 
 ## Style
 
-[`docs/code_styleguides/python.md`](docs/code_styleguides/python.md) and [`general.md`](docs/code_styleguides/general.md). Where a guide and the surrounding code disagree, match the surrounding code.
+[`docs/style-python.md`](docs/style-python.md) and [`docs/style-general.md`](docs/style-general.md). Where a guide and the surrounding code disagree, match the surrounding code.
 
 ## Reporting a problem
 
