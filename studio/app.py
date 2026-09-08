@@ -75,8 +75,16 @@ class VideoRequest(BaseModel):
     files: List[str]
     transition: str = "none"
     duration: float = 2.0
-    audio_files: Optional[List[str]] = None
-    sfx_files: Optional[List[str]] = None
+    # List entries are Optional because these lists are positional -- one slot
+    # per scene, in scene order -- and a scene with no narration or no SFX
+    # occupies its slot with None. AudioMixedStrategy is written for exactly
+    # that (`if audio_files[i]:` per scene), and the server-side fetch path
+    # produces such lists too (see tests-studio/test_av_api.py). Declaring
+    # these as List[str] rejected the sparse case at the API boundary, which
+    # made partially-narrated stories -- the normal case -- unassemblable
+    # over HTTP even though the stitching code handled them fine.
+    audio_files: Optional[List[Optional[str]]] = None
+    sfx_files: Optional[List[Optional[str]]] = None
 
 class AudioRequest(BaseModel):
     scene_index: int

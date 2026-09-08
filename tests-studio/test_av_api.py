@@ -125,6 +125,35 @@ class TestAVAPI(unittest.TestCase):
         self.assertEqual(call_kwargs['sfx_files'], expected_sfx)
 
     @patch("studio.app.perform_stitching")
+    def test_generate_video_accepts_sparse_audio_lists(self, mock_stitch):
+        """Scenes without narration/SFX occupy their slot with None.
+
+        audio_files/sfx_files are positional -- one entry per scene, in scene
+        order -- so a partially-narrated story (the normal case) sends lists
+        with None holes. AudioMixedStrategy handles those per scene; this
+        guards the API boundary, which used to declare List[str] and reject
+        them with a 422 before the request ever reached the stitcher.
+        """
+        payload = {
+            "story_name": self.story_name,
+            "files": [
+                f"{self.story_name}/scene_00_img.png",
+                f"{self.story_name}/scene_01_img.png",
+            ],
+            "transition": "audio_mixed",
+            "duration": 2.0,
+            "audio_files": [f"{self.story_name}/scene_00_narration.wav", None],
+            "sfx_files": [None, f"{self.story_name}/scene_01_sfx.wav"],
+        }
+
+        response = self.client.post("/api/generate_video", json=payload)
+        self.assertEqual(response.status_code, 200, response.text)
+
+        call_kwargs = mock_stitch.call_args[1]
+        self.assertEqual(call_kwargs["audio_files"], [f"{self.story_name}/scene_00_narration.wav", None])
+        self.assertEqual(call_kwargs["sfx_files"], [None, f"{self.story_name}/scene_01_sfx.wav"])
+
+    @patch("studio.app.perform_stitching")
     def test_generate_video_disables_audio(self, mock_stitch):
         """Test that passing empty lists for audio_files disables fetching."""
         payload = {
