@@ -26,7 +26,7 @@ Automated AI storytelling: a `.story` file (scenes + prompts + narration text) g
 | `data/` | `stories/*.story`, `workflows/*.json`, `story_studio.db` |
 | `tests-studio/`, `tests-unit/` | pytest suite — 51 tests, all passing (floor 45% in `pyproject.toml`) |
 | `output/` | Generated media, per story. `ComfyUI/output` is a symlink to this |
-| `docs/` | All project documentation: `revival-plan.md` (current work plan), `tech-stack.md`, `product.md`, `workflow.md`, `docs/code_styleguides/`, `gb10-optimization.md`, `comfy-setup.md`, `docs/tracks/` (open work) |
+| `docs/` | All project documentation: `revival-plan.md` (current work plan), `tech-stack.md`, `product.md`, `docs/code_styleguides/`, `gb10-optimization.md`, `comfy-setup.md`, `docs/tracks/` (open work) |
 | `conductor/archive/` | **Frozen** Dec 2025 Gemini-era track specs. Historical exhibit cited by the `v0-gemini-era` tag — don't rewrite it |
 
 ## Running it
@@ -46,6 +46,18 @@ Use `./comfyui-env/bin/python`, never bare `python` — the venv has torch/diffu
 ## Hardware
 
 NVIDIA GB10 (Grace-Blackwell), 128GB unified memory, ~140W shared TDP. The ComfyUI startup flags in `evergreen.sh` are tuned for it and are not optional — see `docs/gb10-optimization.md` before changing them.
+
+## Definition of done
+
+1. `./comfyui-env/bin/python -m pytest` passes (51 tests; the pre-commit gate runs them too).
+2. The gates pass. If one fires, fix the finding — don't reach for a bypass.
+3. **If you changed anything in the generation pipeline, actually run it.** Not the tests — the pipeline. Start the services, generate a scene, assemble a video, look at the output.
+
+That third one is not boilerplate. `evergreen.sh` could not launch ComfyUI for months: it printed a pid and reported success while the backend was dead. Every test passed the whole time, because nothing in the suite starts a service. Three of the four bugs found on 2026-09-08 were invisible to the test suite by construction and turned up within minutes of running the thing for real.
+
+## Commit messages
+
+No enforced format — the conventional-commits convention this project once documented was followed in 27% of commits, so it isn't claimed here. What's expected: a subject line that says what changed, and a body that says *why*, including what you verified and anything you deliberately left alone. `git log` is the only record of reasoning this project keeps.
 
 ## Style
 
