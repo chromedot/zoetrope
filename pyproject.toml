@@ -3,31 +3,34 @@ name = "zoetrope"
 version = "0.1.0"
 description = "Automates AI storytelling using ComfyUI for image generation and a custom Web Studio for management."
 requires-python = ">=3.12"
+# Minimum versions are the ones this has actually been run against on the
+# GB10, not guesses. Lower bounds rather than pins, so ComfyUI (which shares
+# this virtualenv) can move its own dependencies forward without a conflict.
 dependencies = [
-    "fastapi",
-    "uvicorn",
-    "jinja2",
-    "pydantic",
-    "httpx",
-    "edge-tts",
-    "python-multipart",
+    "fastapi>=0.126.0",
+    "uvicorn>=0.38.0",
+    "jinja2>=3.1.6",
+    "pydantic>=2.12.5",
+    "httpx>=0.28.1",
+    "edge-tts>=7.2.7",
+    "python-multipart>=0.0.21",
 ]
 
 [project.optional-dependencies]
 # Heavy ML deps only exercised by tests-unit/test_audioldm_fp8.py -- not
 # needed to run the studio app itself.
-audioldm = ["torch", "diffusers"]
+audioldm = ["torch>=2.9.1", "diffusers>=0.36.0"]
 # scripts/review_story.py's TUI, not part of the web app.
-tui = ["textual"]
+tui = ["textual>=6.11.0"]
 # studio/app.py's /api/refine_prompt lazily imports this and degrades
 # gracefully (a friendly error, not a crash) if it isn't installed --
 # genuinely optional, not a hard dependency of the app.
 gemini-refine = ["google-generativeai"]
 dev = [
-    "pytest",
-    "pytest-asyncio",
-    "pytest-httpx",
-    "pytest-cov",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
+    "pytest-httpx>=0.36.0",
+    "pytest-cov>=7.1.0",
 ]
 
 [build-system]

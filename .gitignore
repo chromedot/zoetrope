@@ -54,3 +54,6 @@ htmlcov/
 # --- Temporary/Backup Files ---
 *.bak
 *.swp
+
+# Local secrets
+.env
