@@ -8,7 +8,7 @@
     "image_path": "geronimo/new:1200_scene_01_IntroductionSlideGeronimowasfamousinthelate1800sandwestillsayhisnametoday_00001_.png",
     "db_id": 38,
     "narration_text": "Geronimo was an Apache medicine man",
-    "audio_file": "geronimo/audio/scene_00_be42aecc.mp3",
+    "audio_file": "geronimo/audio/scene_00_d4531bcc.mp3",
     "sfx_text": "sound of eagle screeching overhead"
   },
   {
