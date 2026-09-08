@@ -1,4 +1,4 @@
-# Tech Stack - ComfyUI Story Studio
+# Tech Stack - Zoetrope
 
 ## Core Backend
 - **Python:** The primary programming language for both the Studio application and the ComfyUI engine.

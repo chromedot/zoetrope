@@ -38,7 +38,7 @@ start() {
         echo "Studio is already running (PID $(cat "$STUDIO_PID_FILE"))."
         echo "Studio URL: http://reliant:8189/gallery"
     else
-        echo "Launching Story Studio..."
+        echo "Launching Zoetrope..."
         cd "$COMFY_ROOT/studio"
         
         export DB_PATH="$COMFY_ROOT/data/story_studio.db"

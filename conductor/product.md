@@ -1,13 +1,13 @@
 # Initial Concept
-ComfyUI Story Studio automates AI storytelling using ComfyUI for image generation and a custom Web Studio for management.
+Zoetrope automates AI storytelling using ComfyUI for image generation and a custom Web Studio for management.
 
-# Product Guide - ComfyUI Story Studio
+# Product Guide - Zoetrope
 
 ## Target Users
-The primary users of ComfyUI Story Studio are AI artists and hobbyists who want to automate narrative image generation. These users typically work with complex ComfyUI workflows and are looking for a more structured and efficient way to produce images that follow a consistent story or theme.
+The primary users of Zoetrope are AI artists and hobbyists who want to automate narrative image generation. These users typically work with complex ComfyUI workflows and are looking for a more structured and efficient way to produce images that follow a consistent story or theme.
 
 ## Core Goals
-The fundamental goal of the Story Studio is to provide a simplified web interface for managing complex ComfyUI workflows. It aims to bridge the gap between the powerful but sometimes overwhelming ComfyUI node-based interface and the need for a streamlined, narrative-driven content creation process.
+The fundamental goal of Zoetrope is to provide a simplified web interface for managing complex ComfyUI workflows. It aims to bridge the gap between the powerful but sometimes overwhelming ComfyUI node-based interface and the need for a streamlined, narrative-driven content creation process.
 
 ## Key Features
 - **Story and Scene Management:** A dedicated web interface to define, organize, and track stories and their individual scenes.

@@ -1,4 +1,4 @@
-# ComfyUI Story Studio
+# Zoetrope
 
 This project automates AI storytelling using ComfyUI for image generation and a custom Web Studio for management.
 
@@ -25,7 +25,7 @@ cd scripts
 ./startup_prod.sh
 ```
 
-**2. Start the Frontend (Story Studio)**
+**2. Start the Frontend (Zoetrope)**
 Runs on port **8189**.
 ```bash
 cd /data/comfy

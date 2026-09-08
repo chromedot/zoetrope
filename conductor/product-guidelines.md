@@ -1,7 +1,7 @@
-# Product Guidelines - ComfyUI Story Studio
+# Product Guidelines - Zoetrope
 
 ## Tone and Voice
-Our communication style is **Supportive and Instructive**. We prioritize clear, step-by-step guidance to help users navigate the integration between the Story Studio and ComfyUI. We aim to be helpful companions in the creative process, demystifying complex technical steps without oversimplifying the underlying power of the tools.
+Our communication style is **Supportive and Instructive**. We prioritize clear, step-by-step guidance to help users navigate the integration between Zoetrope and ComfyUI. We aim to be helpful companions in the creative process, demystifying complex technical steps without oversimplifying the underlying power of the tools.
 
 ## Visual and UI Principles
 - **Functional Minimalism:** We believe in a clean, uncluttered interface. By prioritizing story data and essential action buttons, we reduce cognitive load and allow the user's creative content to remain the focus.

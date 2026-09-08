@@ -1,7 +1,7 @@
-# 🌌 GEMINI & COPILOT SYSTEM CONTEXT: COMFY STORY STUDIO 🌌
+# 🌌 GEMINI & COPILOT SYSTEM CONTEXT: ZOETROPE 🌌
 
 **PROTOCOL: IMMEDIATE CONTEXT LOADING**
-> *Reading this file initializes the Agent/Copilot with the full operational context of the Story Studio environment.*
+> *Reading this file initializes the Agent/Copilot with the full operational context of the Zoetrope environment.*
 
 ## 👤 USER CONTEXT
 *   **User:** Adam
